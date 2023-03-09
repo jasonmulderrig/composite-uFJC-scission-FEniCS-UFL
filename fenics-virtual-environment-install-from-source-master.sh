@@ -143,7 +143,7 @@ fi
 source bin/activate
 
 pip3 install wheel && pip3 install --upgrade setuptools && pip3 install --upgrade pip
-pip3 install numpy==1.21.6 scipy mpmath sympy matplotlib orthopy quadpy pynverse
+pip3 install numpy==1.21.6 scipy mpmath sympy matplotlib pynverse composite-ufjc-scission==1.3.7
 pip3 install mpi4py
 
 pip3 uninstall gmsh-dev gmsh-sdk gmsh-sdk-git
