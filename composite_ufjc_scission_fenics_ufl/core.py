@@ -1,151 +1,84 @@
-"""The core single-chain module for the composite uFJC model."""
+"""The core single-chain module for the composite uFJC model implemented
+in the Unified Form Language (UFL) for FEniCS.
+"""
 
 # Import external modules
 from __future__ import division
-import sys
-import numpy as np
+from dolfin import *
 
 
-class CompositeuFJC(object):
-    """The composite uFJC single-chain model class.
+class CompositeuFJCUFLFEniCS(object):
+    """The composite uFJC single-chain model class implemented in the
+    Unified Form Language (UFL) for FEniCS.
     
-    This class contains methods specifying the core functions and
-    parameters underpinning the composite uFJC single-chain model
-    independent of scission.
+    This class contains methods specifying the core functions
+    underpinning the composite uFJC single-chain model independent of
+    scission implemented in the Unified Form Language (UFL) for FEniCS.
     """
-    def __init__(self, **kwargs):
-        """
-        Initializes the ``CompositeuFJC`` class, producing a composite
-        uFJC single chain model instance.
-        """
-        # Define and store numerical tolerance parameters
-        min_exponent = np.log(sys.float_info.min) / np.log(10)
-        max_exponent = np.log(sys.float_info.max) / np.log(10)
-        eps_val      = np.finfo(float).eps
-        cond_val     = eps_val * 5e10
-
-        self.min_exponent = min_exponent
-        self.max_exponent = max_exponent
-        self.eps_val      = eps_val
-        self.cond_val     = cond_val
-
-        # Get default parameter values
-        nu           = kwargs.get("nu", None)
-        nu_b         = kwargs.get("nu_b", None)
-        zeta_b_char  = kwargs.get("zeta_b_char", None)
-        kappa_b      = kwargs.get("kappa_b", None)
-        zeta_nu_char = kwargs.get("zeta_nu_char", None)
-        kappa_nu     = kwargs.get("kappa_nu", None)
-        
-        # Check the correctness of the specified parameters
-        # Calculate segment-level parameters from provided bond-level
-        # parameters if necessary
-        if nu is None:
-            sys.exit('Error: Need to specify nu in the composite uFJC.')
-        elif nu_b is None:
-            if zeta_nu_char is None:
-                error_message = """\
-                    Error: Need to specify zeta_nu_char in the composite uFJC \
-                    when nu_b is not specified.
-                    """
-                sys.exit(error_message)
-            elif kappa_nu is None:
-                error_message = """\
-                    Error: Need to specify kappa_nu in the composite uFJC \
-                    when nu_b is not specified. \
-                    """
-                sys.exit(error_message)
-        elif nu_b is not None:
-            if zeta_b_char is None:
-                error_message = """\
-                    Error: Need to specify zeta_b_char in the composite uFJC \
-                    when nu_b is specified. \
-                    """
-                sys.exit(error_message)
-            elif kappa_b is None:
-                error_message = """\
-                    Error: Need to specify kappa_b in the composite uFJC when \
-                    nu_b is specified
-                    """
-                sys.exit(error_message)
-            else:
-                zeta_nu_char = nu_b * zeta_b_char
-                kappa_nu     = nu_b * kappa_b
-        
-        # Retain specified parameters
-        self.nu              = nu
-        self.nu_b            = nu_b
-        self.zeta_b_char     = zeta_b_char
-        self.kappa_b         = kappa_b
-        self.zeta_nu_char    = zeta_nu_char
-        self.kappa_nu        = kappa_nu
-        
-        # Calculate and retain analytically derived parameters
-        self.lmbda_nu_ref    = 1.
-        self.lmbda_c_eq_ref  = 0.
-        self.lmbda_nu_crit   = 1. + np.sqrt(self.zeta_nu_char/self.kappa_nu)
-        self.lmbda_c_eq_crit = (
-            1. + np.sqrt(self.zeta_nu_char/self.kappa_nu)
-            - np.sqrt(1./(self.kappa_nu*self.zeta_nu_char))
-        )
-        self.xi_c_crit = np.sqrt(zeta_nu_char*kappa_nu)
-        
-        # Calculate and retain numerically calculated parameters
-        self.lmbda_c_eq_pade2berg_crit = self.lmbda_c_eq_pade2berg_crit_func()
-        self.lmbda_nu_pade2berg_crit   = (
-            self.lmbda_nu_func(self.lmbda_c_eq_pade2berg_crit)
-        )
+    def __init__(self):
+        pass
     
-    def u_nu_har_func(self, lmbda_nu):
+    def u_nu_har_ufl_fenics_func(self, lmbda_nu):
         """Nondimensional harmonic segment potential energy.
         
         This function computes the nondimensional harmonic segment 
-        potential energy as a function of the segment stretch.
+        potential energy as a function of the segment stretch. This
+        function is implemented in the Unified Form Language (UFL) for
+        FEniCS.
         """
         return 0.5 * self.kappa_nu * (lmbda_nu-1.)**2 - self.zeta_nu_char
     
-    def u_nu_subcrit_func(self, lmbda_nu):
+    def u_nu_subcrit_ufl_fenics_func(self, lmbda_nu):
         """Nondimensional sub-critical chain state segment potential
         energy.
         
         This function computes the nondimensional sub-critical chain
         state segment potential energy as a function of the segment
-        stretch.
+        stretch. This function is implemented in the Unified Form
+        Language (UFL) for FEniCS.
         """
-        return self.u_nu_har_func(lmbda_nu)
+        return self.u_nu_har_ufl_fenics_func(lmbda_nu)
     
-    def u_nu_supercrit_func(self, lmbda_nu):
+    def u_nu_supercrit_ufl_fenics_func(self, lmbda_nu):
         """Nondimensional super-critical chain state segment potential
         energy.
         
         This function computes the nondimensional super-critical chain
         state segment potential energy as a function of the segment
-        stretch.
+        stretch. This function is implemented in the Unified Form
+        Language (UFL) for FEniCS.
         """
-        return -self.zeta_nu_char**2 / (2.*self.kappa_nu*(lmbda_nu-1.)**2)
+        nmrtr = -self.zeta_nu_char**2
+        dnmntr = 2. * self.kappa_nu * (lmbda_nu-1.)**2
+        dnmntr = conditional(ge(dnmntr, DOLFIN_EPS), dnmntr, DOLFIN_EPS)
+        return nmrtr / dnmntr
     
-    def u_nu_func(self, lmbda_nu):
+    def u_nu_ufl_fenics_func(self, lmbda_nu):
         """Nondimensional composite uFJC segment potential energy.
         
         This function computes the nondimensional composite uFJC 
         segment potential energy as a function of the segment stretch.
+        This function is implemented in the Unified Form Language (UFL)
+        for FEniCS.
         """
-        if lmbda_nu <= self.lmbda_nu_crit:
-            return self.u_nu_subcrit_func(lmbda_nu)
-        
-        else:
-            return self.u_nu_supercrit_func(lmbda_nu)
+        u_nu_subcrit_val = self.u_nu_subcrit_ufl_fenics_func(lmbda_nu)
+        u_nu_supercrit_val = self.u_nu_supercrit_ufl_fenics_func(lmbda_nu)
+        u_nu_val = conditional(le(lmbda_nu, self.lmbda_nu_crit),
+                               u_nu_subcrit_val, u_nu_supercrit_val)
+        return u_nu_val
     
-    def u_nu_analytical_func(self, lmbda_nu_hat):
+    def u_nu_analytical_ufl_fenics_func(self, lmbda_nu_hat):
         """Analytical form of the nondimensional composite uFJC segment
         potential energy.
         
         This function computes the nondimensional composite uFJC segment
         potential energy as a function of the applied segment stretch.
+        This function is implemented in the Unified Form Language (UFL)
+        for FEniCS.
         """
-        return self.u_nu_func(lmbda_nu_hat)
+        return self.u_nu_ufl_fenics_func(lmbda_nu_hat)
     
-    def u_nu_prime_analytical_func(self, lmbda_nu_hat):
+    def u_nu_prime_analytical_ufl_fenics_func(self, lmbda_nu_hat):
         """Analytical form of the derivative of the nondimensional
         composite uFJC segment potential energy taken with respect to
         the applied segment stretch.
@@ -153,329 +86,274 @@ class CompositeuFJC(object):
         This function computes the derivative of the nondimensional
         composite uFJC segment potential energy taken with respect to
         the applied segment stretch as a function of applied segment
-        stretch.
+        stretch. This function is implemented in the Unified Form
+        Language (UFL) for FEniCS.
         """
-        if lmbda_nu_hat <= self.lmbda_nu_crit:
-            return self.kappa_nu * (lmbda_nu_hat-1.)
-        else:
-            return self.zeta_nu_char**2 / (self.kappa_nu*(lmbda_nu_hat-1.)**3)
-    
-    def M_func(self, x):
-        """Macaulay brackets.
-        
-        This function computes the value of the Macaulay brackets as a
-        function of a number x.
-        """
-        if x < 0:
-            return 0.
-        else:
-            return x
-    
-    def u_nu_har_comp_func(self, lmbda_nu):
-        """Nondimensional harmonic segment potential energy contribution
-        to the nondimensional composite uFJC segment potential energy
-        representation using Macaulay brackets.
-        
-        This function computes the nondimensional harmonic segment
-        potential energy contribution to the nondimensional composite
-        uFJC segment potential energy representation using Macaulay
-        brackets as a function of the segment stretch.
-        """
-        sgn = np.sign(lmbda_nu-1.)
-        M_arg = sgn * self.kappa_nu * (lmbda_nu-1.)**2 - self.zeta_nu_char
-        M_val = self.M_func(M_arg)
-        M_val_frac = M_val / (M_val+self.zeta_nu_char)
-        nonneg_u_nu_har_val = self.u_nu_har_func(lmbda_nu) + self.zeta_nu_char
-        
-        return (1.-M_val_frac)**2 * nonneg_u_nu_har_val - self.zeta_nu_char
-    
-    def u_nu_sci_comp_func(self, lmbda_nu):
-        """Nondimensional segment scission potential energy contribution
-        to the nondimensional composite uFJC segment potential energy
-        representation using Macaulay brackets.
-        
-        This function computes the nondimensional segment scission
-        potential energy contribution to the nondimensional composite
-        uFJC segment potential energy representation using Macaulay
-        brackets as a function of the segment stretch.
-        """
-        sgn = np.sign(lmbda_nu-1.)
-        M_arg = sgn * self.kappa_nu * (lmbda_nu-1.)**2 - self.zeta_nu_char
-        M_val = self.M_func(M_arg)
-        M_val_frac = M_val / (M_val+self.zeta_nu_char)
-
-        return self.zeta_nu_char * (M_val_frac-1.)
-    
-    def u_nu_M_func(self, lmbda_nu):
-        """Nondimensional composite uFJC segment potential energy
-        representation using Macaulay brackets.
-        
-        This function computes the nondimensional composite uFJC segment
-        potential energy representation using Macaulay brackets as a
-        function of the segment stretch.
-        """
-        return (
-            self.u_nu_har_comp_func(lmbda_nu)
-            + self.u_nu_sci_comp_func(lmbda_nu)
+        u_nu_prime_subcrit_val = self.kappa_nu * (lmbda_nu_hat-1.)
+        u_nu_prime_supercrit_nmrtr = self.zeta_nu_char**2
+        u_nu_prime_supercrit_dnmrtr = self.kappa_nu * (lmbda_nu_hat-1.)**3
+        u_nu_prime_supercrit_dnmrtr = (
+            conditional(ge(u_nu_prime_supercrit_dnmrtr, DOLFIN_EPS),
+                        u_nu_prime_supercrit_dnmrtr, DOLFIN_EPS)
         )
-    
-    def subcrit_lmbda_nu_berg_approx_func(self, lmbda_c_eq):
-        """Sub-critical chain state segment stretch as derived via the
-        Bergstrom approximant for the inverse Langevin function.
-        
-        This function computes the sub-critical chain state segment
-        stretch (as derived via the Bergstrom approximant for the
-        inverse Langevin function) as a function of the equilibrium
-        chain stretch and nondimensional segment stiffness.
-        """
-        sqrt_arg = lmbda_c_eq**2 - 2. * lmbda_c_eq + 1. + 4. / self.kappa_nu
-        return (lmbda_c_eq+1.+np.sqrt(sqrt_arg)) / 2.
-    
-    def subcrit_lmbda_nu_pade_approx_func(self, lmbda_c_eq):
-        """Sub-critical chain state segment stretch as derived via the
-        Pade approximant for the inverse Langevin function.
-        
-        This function computes the sub-critical chain state segment
-        stretch (as derived via the Pade approximant for the inverse
-        Langevin function) as a function of the equilibrium chain
-        stretch and nondimensional segment stiffness.
-        """
-        # analytical solution
-        if lmbda_c_eq == 0.:
-            return 1.
-        
-        else:
-            alpha_tilde = 1.
-            
-            trm_i  = -3. * (self.kappa_nu+1.)
-            trm_ii = -(2.*self.kappa_nu+3.)
-            beta_tilde_nmrtr = trm_i + lmbda_c_eq * trm_ii
-            beta_tilde_dnmntr = self.kappa_nu + 1.
-            beta_tilde  = beta_tilde_nmrtr / beta_tilde_dnmntr
-            
-            trm_i   = 2. * self.kappa_nu
-            trm_ii  = 4. * self.kappa_nu + 6.
-            trm_iii = self.kappa_nu + 3.
-            gamma_tilde_nmrtr = trm_i + lmbda_c_eq * (trm_ii+lmbda_c_eq*trm_iii)
-            gamma_tilde_dnmntr = self.kappa_nu + 1.
-            gamma_tilde  = gamma_tilde_nmrtr / gamma_tilde_dnmntr
-
-            trm_i   = 2.
-            trm_ii  = 2. * self.kappa_nu
-            trm_iii = self.kappa_nu + 3.
-            delta_tilde_nmrtr = (
-                trm_i - lmbda_c_eq * (trm_ii+lmbda_c_eq*(trm_iii+lmbda_c_eq))
-            )
-            delta_tilde_dnmntr = self.kappa_nu + 1.
-            delta_tilde  = delta_tilde_nmrtr / delta_tilde_dnmntr
-
-            pi_tilde_nmrtr  = 3. * alpha_tilde * gamma_tilde - beta_tilde**2
-            pi_tilde_dnmntr = 3. * alpha_tilde**2
-            pi_tilde = pi_tilde_nmrtr / pi_tilde_dnmntr
-
-            rho_tilde_nmrtr = (
-                2. * beta_tilde**3 - 9. * alpha_tilde * beta_tilde * gamma_tilde 
-                + 27. * alpha_tilde**2 * delta_tilde
-            )
-            rho_tilde_dnmntr = 27. * alpha_tilde**3
-            rho_tilde = rho_tilde_nmrtr / rho_tilde_dnmntr
-            
-            arccos_arg = 3. * rho_tilde / (2.*pi_tilde) * np.sqrt(-3./pi_tilde)
-            cos_arg = 1. /3. * np.arccos(arccos_arg) - 2. * np.pi / 3.
-            return (
-                2. * np.sqrt(-pi_tilde/3.) * np.cos(cos_arg) 
-                - beta_tilde / (3.*alpha_tilde)
-            )
-    
-    def pade2berg_crit_func(self):
-        """Pade-to-Bergstrom (P2B) critical segment stretch and critical
-        equilibrium chain stretch.
-        
-        This function numerically calculates the Pade-to-Bergstrom (P2B)
-        critical segment stretch and critical equilibrium chain stretch.
-        """
-        lmbda_c_eq_min = 0.
-        lmbda_c_eq_max = 1.
-        lmbda_c_eq = np.linspace(lmbda_c_eq_min, lmbda_c_eq_max, int(1e4)+1)
-
-        lmbda_nu_bergapprx = [
-            self.subcrit_lmbda_nu_berg_approx_func(lmbda_c_eq_val)
-            for lmbda_c_eq_val in lmbda_c_eq
-        ]
-        lmbda_nu_padeapprx = [
-            self.subcrit_lmbda_nu_pade_approx_func(lmbda_c_eq_val)
-            for lmbda_c_eq_val in lmbda_c_eq
-        ]
-        lmbda_nu_bergapprx = np.asarray(lmbda_nu_bergapprx)
-        lmbda_nu_padeapprx = np.asarray(lmbda_nu_padeapprx)
-        
-        pade2berg_crit_indx = (
-            np.argmin(np.abs(lmbda_nu_padeapprx-lmbda_nu_bergapprx))
+        u_nu_prime_supercrit_val = (
+            u_nu_prime_supercrit_nmrtr / u_nu_prime_supercrit_dnmrtr
         )
-        lmbda_nu_pade2berg_crit = (
-            min([lmbda_nu_bergapprx[pade2berg_crit_indx],
-                lmbda_nu_padeapprx[pade2berg_crit_indx]])
-        )
-        lmbda_c_eq_pade2berg_crit = lmbda_c_eq[pade2berg_crit_indx]
-        return lmbda_nu_pade2berg_crit, lmbda_c_eq_pade2berg_crit
+        u_nu_prime_val = conditional(le(lmbda_nu, self.lmbda_nu_crit),
+                                     u_nu_prime_subcrit_val,
+                                     u_nu_prime_supercrit_val)
+        return u_nu_prime_val
     
-    def lmbda_c_eq_pade2berg_crit_func(self):
-        """Pade-to-Bergstrom (P2B) critical equilibrium chain stretch.
-        
-        This function returns Pade-to-Bergstrom (P2B) critical 
-        equilibrium chain stretch as determined via a scipy optimize
-        curve_fit analysis.
-        """
-        n = 0.818706900266885
-        b = 0.61757545643322586
-        return 1. / self.kappa_nu**n + b
-    
-    def lmbda_c_eq_func(self, lmbda_nu):
+    def lmbda_c_eq_ufl_fenics_func(self, lmbda_nu):
         """Equilibrium chain stretch.
         
         This function computes the equilibrium chain stretch as a 
-        function of the segment stretch.
+        function of the segment stretch. This function is implemented in
+        the Unified Form Language (UFL) for FEniCS.
         """
-        # analytical solution (Pade approximant)
-        if lmbda_nu == 1.:
-            return 0.
+        # sub-critical Pade approximant
+        alpha_tilde_psb = 1.
         
-        # Pade approximant
-        elif lmbda_nu < self.lmbda_nu_pade2berg_crit:
-            alpha_tilde = 1.
-            
-            trm_i  = self.kappa_nu + 3.
-            trm_ii = 1.
-            beta_tilde = trm_i * (trm_ii-lmbda_nu)
+        beta_tilde_psb = (self.kappa_nu+3.) * (1.-lmbda_nu)
 
-            trm_i   = 2. * self.kappa_nu + 3.
-            trm_ii  = 2.
-            trm_iii = 2. * self.kappa_nu
-            gamma_tilde = trm_i * (lmbda_nu**2-trm_ii*lmbda_nu) + trm_iii
-            
-            trm_i   = self.kappa_nu + 1.
-            trm_ii  = 3.
-            trm_iii = 2.
-            trm_iv  = self.kappa_nu
-            trm_v   = 1.
-            delta_tilde = (
-                trm_i * (trm_ii*lmbda_nu**2-lmbda_nu**3)
-                - trm_iii * (trm_iv*lmbda_nu+trm_v)
-            )
-            
-            pi_tilde_nmrtr  = 3. * alpha_tilde * gamma_tilde - beta_tilde**2
-            pi_tilde_dnmntr = 3. * alpha_tilde**2
-            pi_tilde = pi_tilde_nmrtr / pi_tilde_dnmntr
+        trm_i   = 2. * self.kappa_nu + 3.
+        trm_ii  = 2.
+        trm_iii = 2. * self.kappa_nu
+        gamma_tilde_psb = trm_i * (lmbda_nu**2-trm_ii*lmbda_nu) + trm_iii
 
-            rho_tilde_nmrtr = (
-                2. * beta_tilde**3 - 9. * alpha_tilde * beta_tilde * gamma_tilde 
-                + 27. * alpha_tilde**2 * delta_tilde
-            )
-            rho_tilde_dnmntr = 27. * alpha_tilde**3
-            rho_tilde = rho_tilde_nmrtr / rho_tilde_dnmntr
+        trm_i   = self.kappa_nu + 1.
+        trm_ii  = 3.
+        trm_iii = 2.
+        trm_iv  = self.kappa_nu
+        trm_v   = 1.
+        delta_tilde_psb = (
+            trm_i * (trm_ii*lmbda_nu**2-lmbda_nu**3)
+            - trm_iii * (trm_iv*lmbda_nu+trm_v)
+        )
 
-            arccos_arg = 3. * rho_tilde / (2.*pi_tilde) * np.sqrt(-3./pi_tilde)
-            cos_arg = 1. / 3. * np.arccos(arccos_arg) - 2. * np.pi / 3.
-            return (
-                2. * np.sqrt(-pi_tilde/3.) * np.cos(cos_arg)
-                - beta_tilde / (3.*alpha_tilde)
-            )
+        pi_tilde_psb_nmrtr  = (
+            3. * alpha_tilde_psb * gamma_tilde_psb - beta_tilde_psb**2
+        )
+        pi_tilde_psb_dnmntr = 3. * alpha_tilde_psb**2
+        pi_tilde_psb_dnmntr = conditional(ge(pi_tilde_psb_dnmntr, DOLFIN_EPS),
+                                          pi_tilde_psb_dnmntr, DOLFIN_EPS)
+        pi_tilde_psb = pi_tilde_psb_nmrtr / pi_tilde_psb_dnmntr
+
+        rho_tilde_psb_nmrtr = (
+            2. * beta_tilde_psb**3
+            - 9. * alpha_tilde_psb * beta_tilde_psb * gamma_tilde_psb 
+            + 27. * alpha_tilde_psb**2 * delta_tilde_psb
+        )
+        rho_tilde_psb_dnmntr = 27. * alpha_tilde_psb**3
+        rho_tilde_psb_dnmntr = conditional(ge(rho_tilde_psb_dnmntr, DOLFIN_EPS),
+                                           rho_tilde_psb_dnmntr, DOLFIN_EPS)
+        rho_tilde_psb = rho_tilde_psb_nmrtr / rho_tilde_psb_dnmntr
         
-        # Bergstrom approximant
-        elif lmbda_nu <= self.lmbda_nu_crit:
-            return lmbda_nu - 1. / (self.kappa_nu*(lmbda_nu-1.))
+        acos_arg_psb_dnmntr_trm = 2. * pi_tilde_psb
+        acos_arg_psb_dnmntr_trm = conditional(ge(acos_arg_psb_dnmntr_trm, DOLFIN_EPS),
+                                              acos_arg_psb_dnmntr_trm, DOLFIN_EPS)
         
-        # Bergstrom approximant
-        else:
-            return (
-                lmbda_nu
-                - self.kappa_nu / self.zeta_nu_char**2 * (lmbda_nu-1.)**3
-            )
-    
-    def lmbda_nu_func(self, lmbda_c_eq):
+        acos_arg_psb_sqrt_arg = -3. / pi_tilde_psb
+        acos_arg_psb_sqrt_arg = conditional(ge(acos_arg_psb_sqrt_arg, DOLFIN_EPS),
+                                   acos_arg_psb_sqrt_arg, DOLFIN_EPS)
+
+        acos_arg_psb = (
+            3. * rho_tilde_psb / acos_arg_psb_dnmntr_trm * sqrt(acos_arg_psb_sqrt_arg)
+        )
+        acos_arg_psb = conditional(ge(acos_arg_psb, 1.-DOLFIN_EPS),
+                                   1.-DOLFIN_EPS, acos_arg_psb)
+        acos_arg_psb = conditional(le(acos_arg_psb, -1.+DOLFIN_EPS),
+                                   -1.+DOLFIN_EPS, acos_arg_psb)
+        
+        cos_arg_psb = 1. / 3. * acos(acos_arg_psb) - 2. * DOLFIN_PI / 3.
+
+        sqrt_arg_psb = -pi_tilde_psb / 3.
+        sqrt_arg_psb = conditional(ge(sqrt_arg_psb, DOLFIN_EPS),
+                                   sqrt_arg_psb, DOLFIN_EPS)
+        
+        psb_dnmntr_trm = 3. * alpha_tilde_psb
+        psb_dnmntr_trm = conditional(ge(psb_dnmntr_trm, DOLFIN_EPS),
+                                     psb_dnmntr_trm, DOLFIN_EPS)
+
+        lmbda_c_eq_psb_val = (
+            2. * sqrt(sqrt_arg_psb) * cos(cos_arg_psb)
+            - beta_tilde_psb / psb_dnmntr_trm
+        )
+
+        # sub-critical Bergstrom approximant
+        bsb_dnmntr_trm = self.kappa_nu * (lmbda_nu-1.)
+        bsb_dnmntr_trm = conditional(ge(bsb_dnmntr_trm, DOLFIN_EPS),
+                                     bsb_dnmntr_trm, DOLFIN_EPS)
+        
+        lmbda_c_eq_bsb_val = lmbda_nu - 1. / bsb_dnmntr_trm
+
+        # super-critical Bergstrom approximant
+        lmbda_c_eq_bsp_val = (
+            lmbda_nu
+            - self.kappa_nu / self.zeta_nu_char**2 * (lmbda_nu-1.)**3
+        )
+
+        # evaluate the precise value of the equilibrium chain stretch
+        lmbda_c_eq_val_i = conditional(gt(lmbda_nu, 1.), lmbda_c_eq_psb_val, 0.)
+        lmbda_c_eq_val_ii = conditional(gt(lmbda_nu, self.lmbda_nu_pade2berg_crit),
+                                        lmbda_c_eq_bsb_val, lmbda_c_eq_val_i)
+        lmbda_c_eq_val = conditional(gt(lmbda_nu, self.lmbda_nu_crit),
+                                     lmbda_c_eq_bsp_val, lmbda_c_eq_val_ii)
+
+        return lmbda_c_eq_val
+
+    def lmbda_nu_ufl_fenics_func(self, lmbda_c_eq):
         """Segment stretch.
         
         This function computes the segment stretch as a function of 
-        the equilibrium chain stretch.
+        the equilibrium chain stretch. This function is implemented in
+        the Unified Form Language (UFL) for FEniCS.
         """
-        # analytical solution (Pade approximant)
-        if lmbda_c_eq == 0.:
-            return 1.
+        # sub-critical Pade approximant
+        alpha_tilde_psb = 1.
+
+        trm_i  = -3. * (self.kappa_nu+1.)
+        trm_ii = -(2.*self.kappa_nu+3.)
+        beta_tilde_psb_nmrtr  = trm_i + lmbda_c_eq * trm_ii
+        beta_tilde_psb_dnmntr = self.kappa_nu + 1.
+        beta_tilde_psb = beta_tilde_psb_nmrtr / beta_tilde_psb_dnmntr
+
+        trm_i   = 2. * self.kappa_nu
+        trm_ii  = 4. * self.kappa_nu + 6.
+        trm_iii = self.kappa_nu + 3.
+        gamma_tilde_psb_nmrtr = trm_i + lmbda_c_eq * (trm_ii+lmbda_c_eq*trm_iii)
+        gamma_tilde_psb_dnmntr = self.kappa_nu + 1.
+        gamma_tilde_psb = gamma_tilde_psb_nmrtr / gamma_tilde_psb_dnmntr
+
+        trm_i   = 2.
+        trm_ii  = 2. * self.kappa_nu
+        trm_iii = self.kappa_nu + 3.
+        delta_tilde_psb_nmrtr = (
+            trm_i - lmbda_c_eq * (trm_ii+lmbda_c_eq*(trm_iii+lmbda_c_eq))
+        )
+        delta_tilde_psb_dnmntr = self.kappa_nu + 1.
+        delta_tilde_psb  = delta_tilde_psb_nmrtr / delta_tilde_psb_dnmntr
+
+        pi_tilde_psb_nmrtr  = (
+            3. * alpha_tilde_psb * gamma_tilde_psb - beta_tilde_psb**2
+        )
+        pi_tilde_psb_dnmntr = 3. * alpha_tilde_psb**2
+        pi_tilde_psb_dnmntr = conditional(ge(pi_tilde_psb_dnmntr, DOLFIN_EPS),
+                                          pi_tilde_psb_dnmntr, DOLFIN_EPS)
+        pi_tilde_psb = pi_tilde_psb_nmrtr / pi_tilde_psb_dnmntr
+
+        rho_tilde_psb_nmrtr = (
+            2. * beta_tilde_psb**3
+            - 9. * alpha_tilde_psb * beta_tilde_psb * gamma_tilde_psb 
+            + 27. * alpha_tilde_psb**2 * delta_tilde_psb
+        )
+        rho_tilde_psb_dnmntr = 27. * alpha_tilde_psb**3
+        rho_tilde_psb_dnmntr = conditional(ge(rho_tilde_psb_dnmntr, DOLFIN_EPS),
+                                           rho_tilde_psb_dnmntr, DOLFIN_EPS)
+        rho_tilde_psb = rho_tilde_psb_nmrtr / rho_tilde_psb_dnmntr
+
+        acos_arg_psb_dnmntr_trm = 2. * pi_tilde_psb
+        acos_arg_psb_dnmntr_trm = conditional(ge(acos_arg_psb_dnmntr_trm, DOLFIN_EPS),
+                                              acos_arg_psb_dnmntr_trm, DOLFIN_EPS)
         
-        # Pade approximant
-        elif lmbda_c_eq < self.lmbda_c_eq_pade2berg_crit:
-            alpha_tilde = 1.
-            
-            trm_i  = -3. * (self.kappa_nu+1.)
-            trm_ii = -(2.*self.kappa_nu+3.)
-            beta_tilde_nmrtr  = trm_i + lmbda_c_eq * trm_ii
-            beta_tilde_dnmntr = self.kappa_nu + 1.
-            beta_tilde  = beta_tilde_nmrtr / beta_tilde_dnmntr
-            
-            trm_i   = 2. * self.kappa_nu
-            trm_ii  = 4. * self.kappa_nu + 6.
-            trm_iii = self.kappa_nu + 3.
-            gamma_tilde_nmrtr = trm_i + lmbda_c_eq * (trm_ii+lmbda_c_eq*trm_iii)
-            gamma_tilde_dnmntr = self.kappa_nu + 1.
-            gamma_tilde  = gamma_tilde_nmrtr / gamma_tilde_dnmntr
+        acos_arg_psb_sqrt_arg = -3. / pi_tilde_psb
+        acos_arg_psb_sqrt_arg = conditional(ge(acos_arg_psb_sqrt_arg, DOLFIN_EPS),
+                                   acos_arg_psb_sqrt_arg, DOLFIN_EPS)
 
-            trm_i   = 2.
-            trm_ii  = 2. * self.kappa_nu
-            trm_iii = self.kappa_nu + 3.
-            delta_tilde_nmrtr = (
-                trm_i - lmbda_c_eq * (trm_ii+lmbda_c_eq*(trm_iii+lmbda_c_eq))
-            )
-            delta_tilde_dnmntr = self.kappa_nu + 1.
-            delta_tilde  = delta_tilde_nmrtr / delta_tilde_dnmntr
-
-            pi_tilde_nmrtr  = 3. * alpha_tilde * gamma_tilde - beta_tilde**2
-            pi_tilde_dnmntr = 3. * alpha_tilde**2
-            pi_tilde = pi_tilde_nmrtr / pi_tilde_dnmntr
-
-            rho_tilde_nmrtr = (
-                2. * beta_tilde**3 - 9. * alpha_tilde * beta_tilde * gamma_tilde 
-                + 27. * alpha_tilde**2 * delta_tilde
-            )
-            rho_tilde_dnmntr = 27. * alpha_tilde**3
-            rho_tilde = rho_tilde_nmrtr / rho_tilde_dnmntr
-            
-            arccos_arg = 3. * rho_tilde / (2.*pi_tilde) * np.sqrt(-3./pi_tilde)
-            cos_arg = 1. / 3. * np.arccos(arccos_arg) - 2. * np.pi / 3.
-            return (
-                2. * np.sqrt(-pi_tilde/3.) * np.cos(cos_arg)
-                - beta_tilde / (3.*alpha_tilde)
-            )
+        acos_arg_psb = (
+            3. * rho_tilde_psb / acos_arg_psb_dnmntr_trm * sqrt(acos_arg_psb_sqrt_arg)
+        )
+        acos_arg_psb = conditional(ge(acos_arg_psb, 1.-DOLFIN_EPS),
+                                   1.-DOLFIN_EPS, acos_arg_psb)
+        acos_arg_psb = conditional(le(acos_arg_psb, -1.+DOLFIN_EPS),
+                                   -1.+DOLFIN_EPS, acos_arg_psb)
         
-        # Bergstrom approximant
-        elif lmbda_c_eq <= self.lmbda_c_eq_crit:
-            sqrt_arg = lmbda_c_eq**2 - 2. * lmbda_c_eq + 1. + 4. / self.kappa_nu
-            return (lmbda_c_eq+1.+np.sqrt(sqrt_arg)) / 2.
+        cos_arg_psb = 1. / 3. * acos(acos_arg_psb) - 2. * DOLFIN_PI / 3.
+
+        sqrt_arg_psb = -pi_tilde_psb / 3.
+        sqrt_arg_psb = conditional(ge(sqrt_arg_psb, DOLFIN_EPS),
+                                   sqrt_arg_psb, DOLFIN_EPS)
         
-        # Bergstrom approximant
-        else:
-            alpha_tilde = 1.
-            beta_tilde  = -3.
-            gamma_tilde = 3. - self.zeta_nu_char**2 / self.kappa_nu
-            delta_tilde = self.zeta_nu_char**2 / self.kappa_nu * lmbda_c_eq - 1.
+        psb_dnmntr_trm = 3. * alpha_tilde_psb
+        psb_dnmntr_trm = conditional(ge(psb_dnmntr_trm, DOLFIN_EPS),
+                                     psb_dnmntr_trm, DOLFIN_EPS)
 
-            pi_tilde_nmrtr = 3. * alpha_tilde * gamma_tilde - beta_tilde**2
-            pi_tilde_dnmntr = 3. * alpha_tilde**2
-            pi_tilde  = pi_tilde_nmrtr / pi_tilde_dnmntr
+        lmbda_nu_psb_val = (
+            2. * sqrt(sqrt_arg_psb) * cos(cos_arg_psb)
+            - beta_tilde_psb / psb_dnmntr_trm
+        )
 
-            rho_tilde_nmrtr = (
-                2. * beta_tilde**3 - 9. * alpha_tilde * beta_tilde * gamma_tilde
-                + 27. * alpha_tilde**2 * delta_tilde
-            )
-            rho_tilde_dnmntr = 27. * alpha_tilde**3
-            rho_tilde = rho_tilde_nmrtr / rho_tilde_dnmntr
-            
-            arccos_arg = 3. * rho_tilde / (2.*pi_tilde) * np.sqrt(-3./pi_tilde)
-            cos_arg = 1. / 3. * np.arccos(arccos_arg) - 2. * np.pi / 3.
-            return (
-                2. * np.sqrt(-pi_tilde/3.) * np.cos(cos_arg) 
-                - beta_tilde / (3.*alpha_tilde)
-            )
-    
+        # sub-critical Bergstrom approximant
+        sqrt_arg_bsb = lmbda_c_eq**2 - 2. * lmbda_c_eq + 1. + 4. / self.kappa_nu
+        sqrt_arg_bsb = conditional(ge(sqrt_arg_bsb, DOLFIN_EPS),
+                                   sqrt_arg_bsb, DOLFIN_EPS)
+        
+        lmbda_nu_bsb_val = (lmbda_c_eq+1.+sqrt(sqrt_arg_bsb)) / 2.
+
+        # super-critical Bergstrom approximant
+        alpha_tilde_bsp = 1.
+        beta_tilde_bsp  = -3.
+        gamma_tilde_bsp = 3. - self.zeta_nu_char**2 / self.kappa_nu
+        delta_tilde_bsp = self.zeta_nu_char**2 / self.kappa_nu * lmbda_c_eq - 1.
+
+        pi_tilde_bsp_nmrtr = (
+            3. * alpha_tilde_bsp * gamma_tilde_bsp - beta_tilde_bsp**2
+        )
+        pi_tilde_bsp_dnmntr = 3. * alpha_tilde_bsp**2
+        pi_tilde_bsp_dnmntr = conditional(ge(pi_tilde_bsp_dnmntr, DOLFIN_EPS),
+                                          pi_tilde_bsp_dnmntr, DOLFIN_EPS)
+        pi_tilde_bsp  = pi_tilde_bsp_nmrtr / pi_tilde_bsp_dnmntr
+
+        rho_tilde_bsp_nmrtr = (
+            2. * beta_tilde_bsp**3
+            - 9. * alpha_tilde_bsp * beta_tilde_bsp * gamma_tilde_bsp
+            + 27. * alpha_tilde_bsp**2 * delta_tilde_bsp
+        )
+        rho_tilde_bsp_dnmntr = 27. * alpha_tilde_bsp**3
+        rho_tilde_bsp_dnmntr = conditional(ge(rho_tilde_bsp_dnmntr, DOLFIN_EPS),
+                                           rho_tilde_bsp_dnmntr, DOLFIN_EPS)
+        rho_tilde_bsp = rho_tilde_bsp_nmrtr / rho_tilde_bsp_dnmntr
+
+        acos_arg_bsp_dnmntr_trm = 2. * pi_tilde_bsp
+        acos_arg_bsp_dnmntr_trm = conditional(ge(acos_arg_bsp_dnmntr_trm, DOLFIN_EPS),
+                                              acos_arg_bsp_dnmntr_trm, DOLFIN_EPS)
+        
+        acos_arg_bsp_sqrt_arg = -3. / pi_tilde_bsp
+        acos_arg_bsp_sqrt_arg = conditional(ge(acos_arg_bsp_sqrt_arg, DOLFIN_EPS),
+                                   acos_arg_bsp_sqrt_arg, DOLFIN_EPS)
+
+        acos_arg_bsp = (
+            3. * rho_tilde_bsp / acos_arg_bsp_dnmntr_trm * sqrt(acos_arg_bsp_sqrt_arg)
+        )
+        acos_arg_bsp = conditional(ge(acos_arg_bsp, 1.-DOLFIN_EPS),
+                                   1.-DOLFIN_EPS, acos_arg_bsp)
+        acos_arg_bsp = conditional(le(acos_arg_bsp, -1.+DOLFIN_EPS),
+                                   -1.+DOLFIN_EPS, acos_arg_bsp)
+        
+        cos_arg_bsp = 1. / 3. * acos(acos_arg_bsp) - 2. * DOLFIN_PI / 3.
+
+        sqrt_arg_bsp = -pi_tilde_bsp / 3.
+        sqrt_arg_bsp = conditional(ge(sqrt_arg_bsp, DOLFIN_EPS),
+                                   sqrt_arg_bsp, DOLFIN_EPS)
+        
+        bsp_dnmntr_trm = 3. * alpha_tilde_bsp
+        bsp_dnmntr_trm = conditional(ge(bsp_dnmntr_trm, DOLFIN_EPS),
+                                     bsp_dnmntr_trm, DOLFIN_EPS)
+
+        lmbda_nu_bsp_val = (
+            2. * sqrt(sqrt_arg_bsp) * cos(cos_arg_bsp)
+            - beta_tilde_bsp / bsp_dnmntr_trm
+        )
+
+        # evaluate the precise value of the segment stretch
+        lmbda_nu_val_i = conditional(gt(lmbda_c_eq, 0.), lmbda_nu_psb_val, 1.)
+        lmbda_nu_val_ii = conditional(gt(lmbda_c_eq, self.lmbda_c_eq_pade2berg_crit),
+                                      lmbda_nu_bsb_val, lmbda_nu_val_i)
+        lmbda_nu_val = conditional(gt(lmbda_c_eq, self.lmbda_c_eq_crit),
+                                   lmbda_nu_bsp_val, lmbda_nu_val_ii)
+
+        return lmbda_nu_val
+
     def L_func(self, x):
         """Langevin function.
 
@@ -578,27 +456,28 @@ class CompositeuFJC(object):
         
         return self.inv_L_func(lmbda_comp_nu)
     
-    def xi_c_analytical_func(self, lmbda_nu_hat):
+    def xi_c_analytical_ufl_fenics_func(self, lmbda_nu_hat):
         """Analytical form of the nondimensional chain force.
         
         This function computes the nondimensional chain force as a
-        function of the applied segment stretch.
+        function of the applied segment stretch. This function is
+        implemented in the Unified Form Language (UFL) for FEniCS.
         """
-        return self.u_nu_prime_analytical_func(lmbda_nu_hat)
+        return self.u_nu_prime_analytical_ufl_fenics_func(lmbda_nu_hat)
     
-    def lmbda_nu_xi_c_hat_func(self, xi_c_hat):
+    def lmbda_nu_xi_c_hat_ufl_fenics_func(self, xi_c_hat):
         """Segment stretch under an applied chain force.
         
         This function computes the segment stretch under an applied 
         chain force as a function of the applied nondimensional chain
-        force xi_c_hat.
+        force xi_c_hat. This function is implemented in the Unified Form
+        Language (UFL) for FEniCS.
+
+        Note that if the applied nondimensional chain force value is
+        greater than the analytically calculated critical maximum
+        nondimensional chain force value xi_c_crit, then a non-physical
+        segment stretch value of zero is returned
         """
-        if xi_c_hat > self.xi_c_crit + self.cond_val:
-            error_message = """\
-                Applied nondimensional chain force value is greater than the \
-                analytically calculated critical maximum nondimensional chain \
-                force value xi_c_crit. \
-                """
-            sys.exit(error_message)
-        else:
-            return 1. + xi_c_hat / self.kappa_nu
+        xi_c_max = self.xi_c_crit + self.cond_val
+        lmbda_nu_val = 1. + xi_c_hat / self.kappa_nu
+        return conditional(le(xi_c_hat, xi_c_max), lmbda_nu_val, 0.)

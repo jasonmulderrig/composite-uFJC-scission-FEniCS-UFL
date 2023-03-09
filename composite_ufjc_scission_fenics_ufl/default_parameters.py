@@ -1,5 +1,5 @@
-"""
-The default parameters module for the composite uFJC scission model.
+"""The default parameters module for the composite uFJC scission model
+implemented in the Unified Form Language (UFL) for FEniCS.
 """
 
 # import necessary libraries

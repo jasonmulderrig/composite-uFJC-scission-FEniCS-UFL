@@ -1,76 +1,36 @@
-"""The module for the composite uFJC scission model specifying the
-fundamental analytical scission model.
+"""The module for the composite uFJC scission model implemented in the
+Unified Form Language (UFL) for FEniCS specifying the fundamental
+analytical scission model.
 """
 
 # Import external modules
 from __future__ import division
-import sys
-import numpy as np
-import numquad as nq
+from dolfin import *
 
 # Import internal modules
-from .core import CompositeuFJC
+from .core import CompositeuFJCUFLFEniCS
 
 
-class AnalyticalScissionCompositeuFJC(CompositeuFJC):
-    """The composite uFJC scission model class specifying the
-    fundamental analytical scission model.
+class AnalyticalScissionCompositeuFJCUFLFEniCS(CompositeuFJCUFLFEniCS):
+    """The composite uFJC scission model class implemented in the
+    Unified Form Language (UFL) for FEniCS specifying the fundamental
+    analytical scission model.
 
     This class contains methods specifying the fundamental scission 
-    model, which involve defining both energetic and probabilistic
-    quantities. It inherits all attributes and methods from the 
-    ``CompositeuFJC`` class.
+    model implemented in the Unified Form Language (UFL) for FEniCS,
+    which involve defining both energetic and probabilistic quantities.
+    It inherits all attributes and methods from the
+    ``CompositeuFJCUFLFEniCS`` class.
     """
-    def __init__(self, **kwargs):
+    def __init__(self):
         """
-        Initializes the ``AnalyticalScissionModelCompositeuFJC`` class.
+        Initializes the ``AnalyticalScissionCompositeuFJCUFLFEniCS``
+        class.
         
         Initialize and inherit all attributes and methods from the
-        ``CompositeuFJC`` class instance. Calculate and retain
-        parameters that intrinsically depend on the fundamental scission
-        model in the composite uFJC scission model.
+        ``CompositeuFJCUFLFEniCS`` class instance.
         """
-        CompositeuFJC.__init__(self, **kwargs)
-
-        # Parameters needed for numerical calculations
-        self.lmbda_nu_hat_inc  = 0.0005
-        self.num_quad_points   = 1001
-        
-        p_nu_sci_hat_0    = 0.001
-        p_nu_sci_hat_half = 0.5
-        p_nu_sci_hat_1    = 0.999
-        p_c_sci_hat_0     = 0.001
-        p_c_sci_hat_half  = 0.5
-        p_c_sci_hat_1     = 0.999
-
-        # Calculate and retain numerically calculated parameters
-        self.epsilon_nu_diss_hat_crit  = self.epsilon_nu_diss_hat_crit_func()
-        self.epsilon_cnu_diss_hat_crit = self.epsilon_cnu_diss_hat_crit_func()
-        self.A_nu          = self.A_nu_func()
-        self.Lambda_nu_ref = self.lmbda_nu_func(self.A_nu)
-
-        self.g_c_crit = (
-            0.5 * self.A_nu * self.nu**2 * self.epsilon_cnu_diss_hat_crit
-        )
-
-        self.lmbda_nu_crit_p_nu_sci_hat_0 = (
-            self.lmbda_nu_p_nu_sci_hat_analytical_func(p_nu_sci_hat_0)
-        )
-        self.lmbda_nu_crit_p_nu_sci_hat_half = (
-            self.lmbda_nu_p_nu_sci_hat_analytical_func(p_nu_sci_hat_half)
-        )
-        self.lmbda_nu_crit_p_nu_sci_hat_1 = (
-            self.lmbda_nu_p_nu_sci_hat_analytical_func(p_nu_sci_hat_1)
-        )
-        self.lmbda_nu_crit_p_c_sci_hat_0 = (
-            self.lmbda_nu_p_c_sci_hat_analytical_func(p_c_sci_hat_0)
-        )
-        self.lmbda_nu_crit_p_c_sci_hat_half = (
-            self.lmbda_nu_p_c_sci_hat_analytical_func(p_c_sci_hat_half)
-        )
-        self.lmbda_nu_crit_p_c_sci_hat_1 = (
-            self.lmbda_nu_p_c_sci_hat_analytical_func(p_c_sci_hat_1)
-        )
+        CompositeuFJCUFLFEniCS.__init__(self)
 
     def u_nu_tot_hat_func(self, lmbda_nu_hat, lmbda_nu):
         """Nondimensional total segment potential under an applied chain
@@ -526,53 +486,6 @@ class AnalyticalScissionCompositeuFJC(CompositeuFJC):
                 * (lmbda_nu_hat_val-lmbda_nu_hat_val_prior)
             )
     
-    def epsilon_nu_diss_hat_crit_func(self):
-        """Nondimensional rate-independent dissipated segment scission
-        energy for a chain at the critical state.
-        
-        This function computes the nondimensional rate-independent
-        dissipated segment scission energy for a chain at the critical
-        state.
-        """
-        # Define the values of the applied segment stretch to 
-        # calculate over
-        lmbda_nu_hat_num_steps = (
-            int(np.around(
-                (self.lmbda_nu_crit-self.lmbda_nu_ref)/self.lmbda_nu_hat_inc))
-            + 1
-        )
-        lmbda_nu_hat_steps = (
-            np.linspace(
-                self.lmbda_nu_ref, self.lmbda_nu_crit, lmbda_nu_hat_num_steps)
-        )
-
-        # initialization
-        lmbda_nu_hat_max_val_prior = 0.
-        lmbda_nu_hat_max_val       = 0.
-        epsilon_nu_diss_hat_crit_val_prior = 0.
-        epsilon_nu_diss_hat_crit_val       = 0.
-
-        for lmbda_nu_hat_indx in range(lmbda_nu_hat_num_steps):
-            lmbda_nu_hat_val = lmbda_nu_hat_steps[lmbda_nu_hat_indx]
-            lmbda_nu_hat_max_val = max([lmbda_nu_hat_max_val, lmbda_nu_hat_val])
-            
-            if lmbda_nu_hat_indx == 0:
-                pass
-            else:
-                epsilon_nu_diss_hat_crit_val = (
-                    self.epsilon_nu_diss_hat_rate_independent_scission_func(
-                        lmbda_nu_hat_max_val, lmbda_nu_hat_max_val_prior,
-                        lmbda_nu_hat_val,
-                        lmbda_nu_hat_steps[lmbda_nu_hat_indx-1],
-                        epsilon_nu_diss_hat_crit_val_prior)
-                )
-            
-            # update values
-            lmbda_nu_hat_max_val_prior = lmbda_nu_hat_max_val
-            epsilon_nu_diss_hat_crit_val_prior = epsilon_nu_diss_hat_crit_val
-        
-        return epsilon_nu_diss_hat_crit_val
-    
     def epsilon_cnu_diss_hat_prime_analytical_func(self, lmbda_nu_hat):
         """Analytical form of the derivative of the nondimensional
         rate-independent dissipated chain scission energy per segment
@@ -692,210 +605,26 @@ class AnalyticalScissionCompositeuFJC(CompositeuFJC):
                 * (lmbda_nu_hat_val-lmbda_nu_hat_val_prior)
             )
     
-    def epsilon_cnu_diss_hat_crit_func(self):
-        """Nondimensional rate-independent dissipated chain scission
-        energy per segment for a chain at the critical state.
-        
-        This function computes the nondimensional rate-independent
-        dissipated chain scission energy per segment for a chain at the
-        critical state.
-        """
-        # Define the values of the applied segment stretch to 
-        # calculate over
-        lmbda_nu_hat_num_steps = (
-            int(np.around(
-                (self.lmbda_nu_crit-self.lmbda_nu_ref)/self.lmbda_nu_hat_inc))
-            + 1
-        )
-        lmbda_nu_hat_steps = (
-            np.linspace(
-                self.lmbda_nu_ref, self.lmbda_nu_crit, lmbda_nu_hat_num_steps)
-        )
-
-        # initialization
-        lmbda_nu_hat_max_val_prior = 0.
-        lmbda_nu_hat_max_val       = 0.
-        epsilon_cnu_diss_hat_crit_val_prior = 0.
-        epsilon_cnu_diss_hat_crit_val       = 0.
-
-        for lmbda_nu_hat_indx in range(lmbda_nu_hat_num_steps):
-            lmbda_nu_hat_val = lmbda_nu_hat_steps[lmbda_nu_hat_indx]
-            lmbda_nu_hat_max_val = max([lmbda_nu_hat_max_val, lmbda_nu_hat_val])
-            
-            if lmbda_nu_hat_indx == 0:
-                pass
-            else:
-                epsilon_cnu_diss_hat_crit_val = (
-                    self.epsilon_cnu_diss_hat_rate_independent_scission_func(
-                        lmbda_nu_hat_max_val, lmbda_nu_hat_max_val_prior,
-                        lmbda_nu_hat_val,
-                        lmbda_nu_hat_steps[lmbda_nu_hat_indx-1],
-                        epsilon_cnu_diss_hat_crit_val_prior)
-                )
-            
-            # update values
-            lmbda_nu_hat_max_val_prior = lmbda_nu_hat_max_val
-            epsilon_cnu_diss_hat_crit_val_prior = epsilon_cnu_diss_hat_crit_val
-        
-        return epsilon_cnu_diss_hat_crit_val
-    
-    def Z_intact_func(self, lmbda_c_eq):
-        """Integrand involved in the intact equilibrium chain
-        configuration partition function integration
-        
-        This function computes the integrand involved in the intact 
-        equilibrium chain configuration partition function integration
-        as a function of the equilibrium chain stretch, integer n, and
-        segment number nu
-        """
-        lmbda_nu = self.lmbda_nu_func(lmbda_c_eq)
-        psi_cnu  = self.psi_cnu_func(lmbda_nu, lmbda_c_eq)
-        
-        return np.exp(-self.nu*(psi_cnu+self.zeta_nu_char))
-    
-    def A_nu_func(self):
-        """Reference equilibrium chain stretch.
-        
-        This function computes the reference equilibrium chain stretch
-        via numerical quadrature.
-        """
-        def J_func(lmbda_c_eq_ref, lmbda_c_eq_crit):
-            """Jacobian for the master space-equilibrium chain
-            configuration space transformation.
-            
-            This function computes the Jacobian for the master space
-            equilibrium chain configuration space transformation.
-            """
-            return (lmbda_c_eq_crit-lmbda_c_eq_ref)/2.
-        def lmbda_c_eq_point_func(point):
-            """Equilibrium chain stretch as a function of master space
-            coordinate point.
-
-            This function computes the equilibrium chain stretch as a
-            function of master space coordinate point.
-            """
-            J = J_func(self.lmbda_c_eq_ref, self.lmbda_c_eq_crit)
-            return J*(1+point) + self.lmbda_c_eq_ref
-        
-        # Numerical quadrature scheme for integration in the master
-        # space, which corresponds to the initial intact equilibrium
-        # chain configuration
-        scheme = nq.c1.gauss_legendre(self.num_quad_points)
-        
-        # sort points in ascending order
-        indx_ascd_order = np.argsort(scheme.points)
-        points = scheme.points[indx_ascd_order]
-        weights = scheme.weights[indx_ascd_order]
-        
-        # Jacobian for the master space-equilibrium chain configuration
-        # space transformation
-        J = J_func(self.lmbda_c_eq_ref, self.lmbda_c_eq_crit)
-        
-        # Equilibrium chain stretches corresponding to the master space
-        # points for the initial intact chain configuration
-        lmbda_c_eq_0_points = lmbda_c_eq_point_func(points)
-        
-        # Integrand of the zeroth moment of the initial intact chain
-        # configuration equilibrium probability density distribution without
-        # without normalization
-        I_0_intrgrnd = np.asarray(
-            [self.Z_intact_func(lmbda_c_eq_0_point) * lmbda_c_eq_0_point**2
-            for lmbda_c_eq_0_point in lmbda_c_eq_0_points]
-        )
-        
-        # Zeroth moment of the initial intact chain configuration
-        # equilibrium probability density distribution without
-        # normalization
-        I_0 = np.sum(np.multiply(weights, I_0_intrgrnd))*J
-
-        # Total configuration equilibrium partition function
-        Z_eq_tot = (1.+self.nu*np.exp(-self.epsilon_nu_diss_hat_crit)) * I_0
-
-        # Integrand of the second moment of the initial intact chain
-        # configuration equilibrium probability density distribution without
-        # without normalization
-        I_2_intrgrnd = np.asarray(
-            [self.Z_intact_func(lmbda_c_eq_0_point) * lmbda_c_eq_0_point**4
-            for lmbda_c_eq_0_point in lmbda_c_eq_0_points]
-        )
-        
-        # Second moment of the initial intact chain configuration
-        # equilibrium probability density distribution without
-        # normalization
-        I_2 = np.sum(np.multiply(weights, I_2_intrgrnd))*J
-        
-        # Reference equilibrium chain stretch
-        return np.sqrt(I_2/Z_eq_tot)
-
-
-class SmoothstepScissionCompositeuFJC(CompositeuFJC):
-    """The composite uFJC scission model class specifying the smoothstep
+class SmoothstepScissionCompositeuFJCUFLFEniCS(CompositeuFJCUFLFEniCS):
+    """The composite uFJC scission model class implemented in the
+    Unified Form Language (UFL) for FEniCS specifying the smoothstep
     scission model.
 
     This class contains methods specifying the smoothstep scission
-    model, which involve defining both energetic and probabilistic
-    quantities. It inherits all attributes and methods from the 
-    ``CompositeuFJC`` class.
+    model implemented in the Unified Form Language (UFL) for FEniCS,
+    which involve defining both energetic and probabilistic quantities.
+    It inherits all attributes and methods from the
+    ``CompositeuFJCUFLFEniCS`` class.
     """
-    def __init__(self, **kwargs):
+    def __init__(self):
         """
-        Initializes the ``SmoothstepScissionModelCompositeuFJC`` class.
+        Initializes the ``SmoothstepScissionCompositeuFJCUFLFEniCS``
+        class.
         
         Initialize and inherit all attributes and methods from the
-        ``CompositeuFJC`` class instance. Calculate and retain
-        parameters that intrinsically depend on the fundamental scission
-        model in the composite uFJC scission model.
+        ``CompositeuFJCUFLFEniCS`` class instance.
         """
-        CompositeuFJC.__init__(self, **kwargs)
-
-        lmbda_nu_crit_min = kwargs.get("lmbda_nu_crit_min", None)
-        lmbda_nu_crit_max = kwargs.get("lmbda_nu_crit_max", None)
-
-        if lmbda_nu_crit_min is None:
-            error_message = """\
-                Error: Need to specify the minimum critical segment stretch \
-                where segment scission initiates. \
-                """
-            sys.exit(error_message)
-        if lmbda_nu_crit_max is None:
-            error_message = """\
-                Error: Need to specify the maximum critical segment stretch \
-                where segments have undergone complete scission. \
-                """
-            sys.exit(error_message)
-        if lmbda_nu_crit_min < self.lmbda_nu_ref:
-            error_message = """\
-                Error: The minimum critical segment stretch is less than the \
-                minimum reference segment stretch of 1. The minimum critical \
-                segment stretch needs to be greater than the minimum reference \
-                segment stretch of 1. \
-                """
-            sys.exit(error_message)
-        if lmbda_nu_crit_max > self.lmbda_nu_crit:
-            error_message = """\
-                Error: The maximum critical segment stretch is greater than \
-                the critical segment stretch. The maximum critical segment \
-                stretch needs to be less than the critical segment stretch. \
-                """
-            sys.exit(error_message)
-        
-        # Retain specified parameters
-        self.lmbda_nu_crit_min = lmbda_nu_crit_min
-        self.lmbda_nu_crit_max = lmbda_nu_crit_max
-
-        # Parameters needed for numerical calculations
-        self.lmbda_nu_hat_inc  = 0.0005
-        self.num_quad_points   = 1001
-
-        # Calculate and retain numerically calculated parameters
-        self.epsilon_nu_diss_hat_crit  = self.epsilon_nu_diss_hat_crit_func()
-        self.epsilon_cnu_diss_hat_crit = self.epsilon_cnu_diss_hat_crit_func()
-        self.A_nu          = self.A_nu_func()
-        self.Lambda_nu_ref = self.lmbda_nu_func(self.A_nu)
-
-        self.g_c_crit = (
-            0.5 * self.A_nu * self.nu**2 * self.epsilon_cnu_diss_hat_crit
-        )
+        CompositeuFJCUFLFEniCS.__init__(self)
 
     def epsilon_nu_sci_hat_func(self, lmbda_nu_hat):
         """Nondimensional segment scission energy.
@@ -1236,53 +965,6 @@ class SmoothstepScissionCompositeuFJC(CompositeuFJC):
                 * (lmbda_nu_hat_val-lmbda_nu_hat_val_prior)
             )
     
-    def epsilon_nu_diss_hat_crit_func(self):
-        """Nondimensional rate-independent dissipated segment scission
-        energy for a chain at the critical state.
-        
-        This function computes the nondimensional rate-independent
-        dissipated segment scission energy for a chain at the critical
-        state.
-        """
-        # Define the values of the applied segment stretch to 
-        # calculate over
-        lmbda_nu_hat_num_steps = (
-            int(np.around(
-                (self.lmbda_nu_crit-self.lmbda_nu_ref)/self.lmbda_nu_hat_inc))
-            + 1
-        )
-        lmbda_nu_hat_steps = (
-            np.linspace(
-                self.lmbda_nu_ref, self.lmbda_nu_crit, lmbda_nu_hat_num_steps)
-        )
-
-        # initialization
-        lmbda_nu_hat_max_val_prior = 0.
-        lmbda_nu_hat_max_val       = 0.
-        epsilon_nu_diss_hat_crit_val_prior = 0.
-        epsilon_nu_diss_hat_crit_val       = 0.
-
-        for lmbda_nu_hat_indx in range(lmbda_nu_hat_num_steps):
-            lmbda_nu_hat_val = lmbda_nu_hat_steps[lmbda_nu_hat_indx]
-            lmbda_nu_hat_max_val = max([lmbda_nu_hat_max_val, lmbda_nu_hat_val])
-            
-            if lmbda_nu_hat_indx == 0:
-                pass
-            else:
-                epsilon_nu_diss_hat_crit_val = (
-                    self.epsilon_nu_diss_hat_rate_independent_scission_func(
-                        lmbda_nu_hat_max_val, lmbda_nu_hat_max_val_prior,
-                        lmbda_nu_hat_val,
-                        lmbda_nu_hat_steps[lmbda_nu_hat_indx-1],
-                        epsilon_nu_diss_hat_crit_val_prior)
-                )
-            
-            # update values
-            lmbda_nu_hat_max_val_prior = lmbda_nu_hat_max_val
-            epsilon_nu_diss_hat_crit_val_prior = epsilon_nu_diss_hat_crit_val
-        
-        return epsilon_nu_diss_hat_crit_val
-    
     def epsilon_cnu_diss_hat_prime_analytical_func(self, lmbda_nu_hat):
         """Analytical form of the derivative of the nondimensional
         rate-independent dissipated chain scission energy per segment
@@ -1402,196 +1084,25 @@ class SmoothstepScissionCompositeuFJC(CompositeuFJC):
                 * (lmbda_nu_hat_val-lmbda_nu_hat_val_prior)
             )
     
-    def epsilon_cnu_diss_hat_crit_func(self):
-        """Nondimensional rate-independent dissipated chain scission
-        energy per segment for a chain at the critical state.
-        
-        This function computes the nondimensional rate-independent
-        dissipated chain scission energy per segment for a chain at the
-        critical state.
-        """
-        # Define the values of the applied segment stretch to 
-        # calculate over
-        lmbda_nu_hat_num_steps = (
-            int(np.around(
-                (self.lmbda_nu_crit-self.lmbda_nu_ref)/self.lmbda_nu_hat_inc))
-            + 1
-        )
-        lmbda_nu_hat_steps = (
-            np.linspace(
-                self.lmbda_nu_ref, self.lmbda_nu_crit, lmbda_nu_hat_num_steps)
-        )
-
-        # initialization
-        lmbda_nu_hat_max_val_prior = 0.
-        lmbda_nu_hat_max_val       = 0.
-        epsilon_cnu_diss_hat_crit_val_prior = 0.
-        epsilon_cnu_diss_hat_crit_val       = 0.
-
-        for lmbda_nu_hat_indx in range(lmbda_nu_hat_num_steps):
-            lmbda_nu_hat_val = lmbda_nu_hat_steps[lmbda_nu_hat_indx]
-            lmbda_nu_hat_max_val = max([lmbda_nu_hat_max_val, lmbda_nu_hat_val])
-            
-            if lmbda_nu_hat_indx == 0:
-                pass
-            else:
-                epsilon_cnu_diss_hat_crit_val = (
-                    self.epsilon_cnu_diss_hat_rate_independent_scission_func(
-                        lmbda_nu_hat_max_val, lmbda_nu_hat_max_val_prior,
-                        lmbda_nu_hat_val,
-                        lmbda_nu_hat_steps[lmbda_nu_hat_indx-1],
-                        epsilon_cnu_diss_hat_crit_val_prior)
-                )
-            
-            # update values
-            lmbda_nu_hat_max_val_prior = lmbda_nu_hat_max_val
-            epsilon_cnu_diss_hat_crit_val_prior = epsilon_cnu_diss_hat_crit_val
-        
-        return epsilon_cnu_diss_hat_crit_val
-    
-    def Z_intact_func(self, lmbda_c_eq):
-        """Integrand involved in the intact equilibrium chain
-        configuration partition function integration
-        
-        This function computes the integrand involved in the intact 
-        equilibrium chain configuration partition function integration
-        as a function of the equilibrium chain stretch, integer n, and
-        segment number nu
-        """
-        lmbda_nu = self.lmbda_nu_func(lmbda_c_eq)
-        psi_cnu  = self.psi_cnu_func(lmbda_nu, lmbda_c_eq)
-        
-        return np.exp(-self.nu*(psi_cnu+self.zeta_nu_char))
-    
-    def A_nu_func(self):
-        """Reference equilibrium chain stretch.
-        
-        This function computes the reference equilibrium chain stretch
-        via numerical quadrature.
-        """
-        def J_func(lmbda_c_eq_ref, lmbda_c_eq_crit):
-            """Jacobian for the master space-equilibrium chain
-            configuration space transformation.
-            
-            This function computes the Jacobian for the master space
-            equilibrium chain configuration space transformation.
-            """
-            return (lmbda_c_eq_crit-lmbda_c_eq_ref)/2.
-        def lmbda_c_eq_point_func(point):
-            """Equilibrium chain stretch as a function of master space
-            coordinate point.
-
-            This function computes the equilibrium chain stretch as a
-            function of master space coordinate point.
-            """
-            J = J_func(self.lmbda_c_eq_ref, self.lmbda_c_eq_crit)
-            return J*(1+point) + self.lmbda_c_eq_ref
-        
-        # Numerical quadrature scheme for integration in the master
-        # space, which corresponds to the initial intact equilibrium
-        # chain configuration
-        scheme = nq.c1.gauss_legendre(self.num_quad_points)
-        
-        # sort points in ascending order
-        indx_ascd_order = np.argsort(scheme.points)
-        points = scheme.points[indx_ascd_order]
-        weights = scheme.weights[indx_ascd_order]
-        
-        # Jacobian for the master space-equilibrium chain configuration
-        # space transformation
-        J = J_func(self.lmbda_c_eq_ref, self.lmbda_c_eq_crit)
-        
-        # Equilibrium chain stretches corresponding to the master space
-        # points for the initial intact chain configuration
-        lmbda_c_eq_0_points = lmbda_c_eq_point_func(points)
-        
-        # Integrand of the zeroth moment of the initial intact chain
-        # configuration equilibrium probability density distribution without
-        # without normalization
-        I_0_intrgrnd = np.asarray(
-            [self.Z_intact_func(lmbda_c_eq_0_point) * lmbda_c_eq_0_point**2
-            for lmbda_c_eq_0_point in lmbda_c_eq_0_points]
-        )
-        
-        # Zeroth moment of the initial intact chain configuration
-        # equilibrium probability density distribution without
-        # normalization
-        I_0 = np.sum(np.multiply(weights, I_0_intrgrnd))*J
-
-        # Total configuration equilibrium partition function
-        Z_eq_tot = (1.+self.nu*np.exp(-self.epsilon_nu_diss_hat_crit)) * I_0
-
-        # Integrand of the second moment of the initial intact chain
-        # configuration equilibrium probability density distribution without
-        # without normalization
-        I_2_intrgrnd = np.asarray(
-            [self.Z_intact_func(lmbda_c_eq_0_point) * lmbda_c_eq_0_point**4
-            for lmbda_c_eq_0_point in lmbda_c_eq_0_points]
-        )
-        
-        # Second moment of the initial intact chain configuration
-        # equilibrium probability density distribution without
-        # normalization
-        I_2 = np.sum(np.multiply(weights, I_2_intrgrnd))*J
-        
-        # Reference equilibrium chain stretch
-        return np.sqrt(I_2/Z_eq_tot)
-
-
-class SigmoidScissionCompositeuFJC(CompositeuFJC):
-    """The composite uFJC scission model class specifying the sigmoid
+class SigmoidScissionCompositeuFJCUFLFEniCS(CompositeuFJCUFLFEniCS):
+    """The composite uFJC scission model class implemented in the
+    Unified Form Language (UFL) for FEniCS specifying the sigmoid
     scission model.
 
     This class contains methods specifying the sigmoid scission
-    model, which involve defining both energetic and probabilistic
-    quantities. It inherits all attributes and methods from the
-    ``CompositeuFJC`` class.
+    model implemented in the Unified Form Language (UFL) for FEniCS,
+    which involve defining both energetic and probabilistic quantities.
+    It inherits all attributes and methods from the
+    ``CompositeuFJCUFLFEniCS`` class.
     """
-    def __init__(self, **kwargs):
+    def __init__(self):
         """
-        Initializes the ``SigmoidScissionModelCompositeuFJC`` class.
+        Initializes the ``SigmoidScissionCompositeuFJCUFLFEniCS`` class.
         
         Initialize and inherit all attributes and methods from the
-        ``CompositeuFJC`` class instance. Calculate and retain
-        parameters that intrinsically depend on the fundamental scission
-        model in the composite uFJC scission model.
+        ``CompositeuFJCUFLFEniCS`` class instance.
         """
-        CompositeuFJC.__init__(self, **kwargs)
-
-        tau = kwargs.get("tau", None)
-        lmbda_nu_check = kwargs.get("lmbda_nu_check", None)
-
-        if tau is None:
-            error_message = """\
-                Error: Need to specify the logistic growth rate of the segment \
-                scission. \
-                """
-            sys.exit(error_message)
-        if lmbda_nu_check is None:
-            error_message = """\
-                Error: Need to specify the segment stretch value at which \
-                point the rate-independent probability of segment scission \
-                equals 0.5. \
-                """
-            sys.exit(error_message)
-        
-        # Retain specified parameters
-        self.tau = tau
-        self.lmbda_nu_check = lmbda_nu_check
-
-        # Parameters needed for numerical calculations
-        self.lmbda_nu_hat_inc  = 0.0005
-        self.num_quad_points   = 1001
-
-        # Calculate and retain numerically calculated parameters
-        self.epsilon_nu_diss_hat_crit  = self.epsilon_nu_diss_hat_crit_func()
-        self.epsilon_cnu_diss_hat_crit = self.epsilon_cnu_diss_hat_crit_func()
-        self.A_nu          = self.A_nu_func()
-        self.Lambda_nu_ref = self.lmbda_nu_func(self.A_nu)
-
-        self.g_c_crit = (
-            0.5 * self.A_nu * self.nu**2 * self.epsilon_cnu_diss_hat_crit
-        )
+        CompositeuFJCUFLFEniCS.__init__(self)
 
     def epsilon_nu_sci_hat_func(self, lmbda_nu_hat):
         """Nondimensional segment scission energy.
@@ -1918,53 +1429,6 @@ class SigmoidScissionCompositeuFJC(CompositeuFJC):
                 * (lmbda_nu_hat_val-lmbda_nu_hat_val_prior)
             )
     
-    def epsilon_nu_diss_hat_crit_func(self):
-        """Nondimensional rate-independent dissipated segment scission
-        energy for a chain at the critical state.
-        
-        This function computes the nondimensional rate-independent
-        dissipated segment scission energy for a chain at the critical
-        state.
-        """
-        # Define the values of the applied segment stretch to 
-        # calculate over
-        lmbda_nu_hat_num_steps = (
-            int(np.around(
-                (self.lmbda_nu_crit-self.lmbda_nu_ref)/self.lmbda_nu_hat_inc))
-            + 1
-        )
-        lmbda_nu_hat_steps = (
-            np.linspace(
-                self.lmbda_nu_ref, self.lmbda_nu_crit, lmbda_nu_hat_num_steps)
-        )
-
-        # initialization
-        lmbda_nu_hat_max_val_prior = 0.
-        lmbda_nu_hat_max_val       = 0.
-        epsilon_nu_diss_hat_crit_val_prior = 0.
-        epsilon_nu_diss_hat_crit_val       = 0.
-
-        for lmbda_nu_hat_indx in range(lmbda_nu_hat_num_steps):
-            lmbda_nu_hat_val = lmbda_nu_hat_steps[lmbda_nu_hat_indx]
-            lmbda_nu_hat_max_val = max([lmbda_nu_hat_max_val, lmbda_nu_hat_val])
-            
-            if lmbda_nu_hat_indx == 0:
-                pass
-            else:
-                epsilon_nu_diss_hat_crit_val = (
-                    self.epsilon_nu_diss_hat_rate_independent_scission_func(
-                        lmbda_nu_hat_max_val, lmbda_nu_hat_max_val_prior,
-                        lmbda_nu_hat_val,
-                        lmbda_nu_hat_steps[lmbda_nu_hat_indx-1],
-                        epsilon_nu_diss_hat_crit_val_prior)
-                )
-            
-            # update values
-            lmbda_nu_hat_max_val_prior = lmbda_nu_hat_max_val
-            epsilon_nu_diss_hat_crit_val_prior = epsilon_nu_diss_hat_crit_val
-        
-        return epsilon_nu_diss_hat_crit_val
-    
     def epsilon_cnu_diss_hat_prime_analytical_func(self, lmbda_nu_hat):
         """Analytical form of the derivative of the nondimensional
         rate-independent dissipated chain scission energy per segment
@@ -2083,138 +1547,3 @@ class SigmoidScissionCompositeuFJC(CompositeuFJC):
                 epsilon_cnu_diss_hat_val_prior + epsilon_cnu_diss_hat_prime_val
                 * (lmbda_nu_hat_val-lmbda_nu_hat_val_prior)
             )
-    
-    def epsilon_cnu_diss_hat_crit_func(self):
-        """Nondimensional rate-independent dissipated chain scission
-        energy per segment for a chain at the critical state.
-        
-        This function computes the nondimensional rate-independent
-        dissipated chain scission energy per segment for a chain at the
-        critical state.
-        """
-        # Define the values of the applied segment stretch to 
-        # calculate over
-        lmbda_nu_hat_num_steps = (
-            int(np.around(
-                (self.lmbda_nu_crit-self.lmbda_nu_ref)/self.lmbda_nu_hat_inc))
-            + 1
-        )
-        lmbda_nu_hat_steps = (
-            np.linspace(
-                self.lmbda_nu_ref, self.lmbda_nu_crit, lmbda_nu_hat_num_steps)
-        )
-
-        # initialization
-        lmbda_nu_hat_max_val_prior = 0.
-        lmbda_nu_hat_max_val       = 0.
-        epsilon_cnu_diss_hat_crit_val_prior = 0.
-        epsilon_cnu_diss_hat_crit_val       = 0.
-
-        for lmbda_nu_hat_indx in range(lmbda_nu_hat_num_steps):
-            lmbda_nu_hat_val = lmbda_nu_hat_steps[lmbda_nu_hat_indx]
-            lmbda_nu_hat_max_val = max([lmbda_nu_hat_max_val, lmbda_nu_hat_val])
-            
-            if lmbda_nu_hat_indx == 0:
-                pass
-            else:
-                epsilon_cnu_diss_hat_crit_val = (
-                    self.epsilon_cnu_diss_hat_rate_independent_scission_func(
-                        lmbda_nu_hat_max_val, lmbda_nu_hat_max_val_prior,
-                        lmbda_nu_hat_val,
-                        lmbda_nu_hat_steps[lmbda_nu_hat_indx-1],
-                        epsilon_cnu_diss_hat_crit_val_prior)
-                )
-            
-            # update values
-            lmbda_nu_hat_max_val_prior = lmbda_nu_hat_max_val
-            epsilon_cnu_diss_hat_crit_val_prior = epsilon_cnu_diss_hat_crit_val
-        
-        return epsilon_cnu_diss_hat_crit_val
-    
-    def Z_intact_func(self, lmbda_c_eq):
-        """Integrand involved in the intact equilibrium chain
-        configuration partition function integration
-        
-        This function computes the integrand involved in the intact 
-        equilibrium chain configuration partition function integration
-        as a function of the equilibrium chain stretch, integer n, and
-        segment number nu
-        """
-        lmbda_nu = self.lmbda_nu_func(lmbda_c_eq)
-        psi_cnu  = self.psi_cnu_func(lmbda_nu, lmbda_c_eq)
-        
-        return np.exp(-self.nu*(psi_cnu+self.zeta_nu_char))
-    
-    def A_nu_func(self):
-        """Reference equilibrium chain stretch.
-        
-        This function computes the reference equilibrium chain stretch
-        via numerical quadrature.
-        """
-        def J_func(lmbda_c_eq_ref, lmbda_c_eq_crit):
-            """Jacobian for the master space-equilibrium chain
-            configuration space transformation.
-            
-            This function computes the Jacobian for the master space
-            equilibrium chain configuration space transformation.
-            """
-            return (lmbda_c_eq_crit-lmbda_c_eq_ref)/2.
-        def lmbda_c_eq_point_func(point):
-            """Equilibrium chain stretch as a function of master space
-            coordinate point.
-
-            This function computes the equilibrium chain stretch as a
-            function of master space coordinate point.
-            """
-            J = J_func(self.lmbda_c_eq_ref, self.lmbda_c_eq_crit)
-            return J*(1+point) + self.lmbda_c_eq_ref
-        
-        # Numerical quadrature scheme for integration in the master
-        # space, which corresponds to the initial intact equilibrium
-        # chain configuration
-        scheme = nq.c1.gauss_legendre(self.num_quad_points)
-        
-        # sort points in ascending order
-        indx_ascd_order = np.argsort(scheme.points)
-        points = scheme.points[indx_ascd_order]
-        weights = scheme.weights[indx_ascd_order]
-        
-        # Jacobian for the master space-equilibrium chain configuration
-        # space transformation
-        J = J_func(self.lmbda_c_eq_ref, self.lmbda_c_eq_crit)
-        
-        # Equilibrium chain stretches corresponding to the master space
-        # points for the initial intact chain configuration
-        lmbda_c_eq_0_points = lmbda_c_eq_point_func(points)
-        
-        # Integrand of the zeroth moment of the initial intact chain
-        # configuration equilibrium probability density distribution without
-        # without normalization
-        I_0_intrgrnd = np.asarray(
-            [self.Z_intact_func(lmbda_c_eq_0_point) * lmbda_c_eq_0_point**2
-            for lmbda_c_eq_0_point in lmbda_c_eq_0_points]
-        )
-        
-        # Zeroth moment of the initial intact chain configuration
-        # equilibrium probability density distribution without
-        # normalization
-        I_0 = np.sum(np.multiply(weights, I_0_intrgrnd))*J
-
-        # Total configuration equilibrium partition function
-        Z_eq_tot = (1.+self.nu*np.exp(-self.epsilon_nu_diss_hat_crit)) * I_0
-
-        # Integrand of the second moment of the initial intact chain
-        # configuration equilibrium probability density distribution without
-        # without normalization
-        I_2_intrgrnd = np.asarray(
-            [self.Z_intact_func(lmbda_c_eq_0_point) * lmbda_c_eq_0_point**4
-            for lmbda_c_eq_0_point in lmbda_c_eq_0_points]
-        )
-        
-        # Second moment of the initial intact chain configuration
-        # equilibrium probability density distribution without
-        # normalization
-        I_2 = np.sum(np.multiply(weights, I_2_intrgrnd))*J
-        
-        # Reference equilibrium chain stretch
-        return np.sqrt(I_2/Z_eq_tot)

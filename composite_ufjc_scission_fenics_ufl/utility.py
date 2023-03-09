@@ -1,4 +1,6 @@
-"""The utilities module for the composite uFJC scission model."""
+"""The utilities module for the composite uFJC scission model
+implemented in the Unified Form Language (UFL) for FEniCS.
+"""
 
 # import necessary libraries
 from __future__ import division

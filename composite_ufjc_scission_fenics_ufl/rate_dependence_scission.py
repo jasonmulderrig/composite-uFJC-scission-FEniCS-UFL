@@ -1,29 +1,36 @@
-"""The module for the composite uFJC scission model specifying the
-rate-dependent or rate-independent nature of scission.
+"""The module for the composite uFJC scission model implemented in the
+Unified Form Language (UFL) for FEniCS specifying the rate-dependent or
+rate-independent nature of scission.
 """
 
 # Import external modules
 from __future__ import division
-import numpy as np
-import sys
+from dolfin import *
 
 
-class RateIndependentScission(object):
-    """The composite uFJC scission model class specifying
-    rate-independent scission.
+class RateIndependentScissionUFLFEniCS(object):
+    """The composite uFJC scission model class implemented in the
+    Unified Form Language (UFL) for FEniCS specifying rate-independent
+    scission.
 
     This class contains methods specifying rate-independent scission for
-    the composite uFJC chain model, which involve defining both
-    energetic and probabilistic quantities. Via class inheritance in the
-    ``RateIndependentScissionCompositeuFJC`` class, this class inherits
-    all attributes and methods from the
-    ``AnalyticalScissionCompositeuFJC`` class, which inherits all
-    attributes and methods from the ``CompositeuFJC`` class.
+    the composite uFJC chain model implemented in the Unified Form
+    Language (UFL) for FEniCS, which involve defining both energetic and
+    probabilistic quantities. Via class inheritance in the
+    ``RateIndependentScissionCompositeuFJCUFLFEniCS`` class, the
+    ``RateIndependentSmoothstepScissionCompositeuFJCUFLFEniCS`` class,
+    and the ``RateIndependentSigmoidScissionCompositeuFJCUFLFEniCS``
+    class, this class inherits all attributes and methods from the
+    ``AnalyticalScissionCompositeuFJCUFLFEniCS`` class, the
+    ``SmoothstepScissionCompositeuFJCUFLFEniCS`` class, and the
+    ``SigmoidScissionCompositeuFJCUFLFEniCS`` class, and each of these
+    classes inherit all attributes and methods from the
+    ``CompositeuFJCUFLFEniCS`` class.
     """
     def __init__(self):
         pass
 
-    def epsilon_nu_diss_hat_func(
+    def epsilon_nu_diss_hat_ufl_fenics_func(
             self, lmbda_nu_hat_max_val, lmbda_nu_hat_max_val_prior,
             lmbda_nu_hat_val, lmbda_nu_hat_val_prior,
             epsilon_nu_diss_hat_val_prior):
@@ -34,16 +41,17 @@ class RateIndependentScission(object):
         dissipated segment scission energy as a function of its prior
         value, the current and prior values of the applied segment
         stretch, and the current and prior values of the maximum applied
-        segment stretch.
+        segment stretch. This function is implemented in the Unified
+        Form Language (UFL) for FEniCS.
         """
         return (
-            self.epsilon_nu_diss_hat_rate_independent_scission_func(
+            self.epsilon_nu_diss_hat_rate_independent_scission_ufl_fenics_func(
                 lmbda_nu_hat_max_val, lmbda_nu_hat_max_val_prior,
                 lmbda_nu_hat_val, lmbda_nu_hat_val_prior,
                 epsilon_nu_diss_hat_val_prior)
         )
     
-    def epsilon_cnu_diss_hat_func(
+    def epsilon_cnu_diss_hat_ufl_fenics_func(
             self, lmbda_nu_hat_max_val, lmbda_nu_hat_max_val_prior,
             lmbda_nu_hat_val, lmbda_nu_hat_val_prior,
             epsilon_cnu_diss_hat_val_prior):
@@ -54,42 +62,40 @@ class RateIndependentScission(object):
         dissipated chain scission energy per segment as a function of
         its prior value, the current and prior values of the applied
         segment stretch, and the current and prior values of the maximum
-        applied segment stretch.
+        applied segment stretch. This function is implemented in the
+        Unified Form Language (UFL) for FEniCS.
         """
         return (
-            self.epsilon_cnu_diss_hat_rate_independent_scission_func(
+            self.epsilon_cnu_diss_hat_rate_independent_scission_ufl_fenics_func(
                 lmbda_nu_hat_max_val, lmbda_nu_hat_max_val_prior,
                 lmbda_nu_hat_val, lmbda_nu_hat_val_prior,
                 epsilon_cnu_diss_hat_val_prior)
         )
     
 
-class RateDependentScission(object):
-    """The composite uFJC scission model class specifying rate-dependent
+class RateDependentScissionUFLFEniCS(object):
+    """The composite uFJC scission model class implemented in the
+    Unified Form Language (UFL) for FEniCS specifying rate-dependent
     scission.
 
     This class contains methods specifying rate-dependent scission for
-    the composite uFJC chain model, which involve defining both
-    energetic and probabilistic quantities. Via class inheritance in the
-    ``RateDependentScissionCompositeuFJC`` class, this class inherits
-    all attributes and methods from the
-    ``AnalyticalScissionCompositeuFJC`` class, which inherits all
-    attributes and methods from the ``CompositeuFJC`` class.
+    the composite uFJC chain model implemented in the Unified Form
+    Language (UFL) for FEniCS, which involve defining both energetic and
+    probabilistic quantities. Via class inheritance in the
+    ``RateDependentScissionCompositeuFJCUFLFEniCS`` class, the
+    ``RateDependentSmoothstepScissionCompositeuFJCUFLFEniCS`` class,
+    and the ``RateDependentSigmoidScissionCompositeuFJCUFLFEniCS``
+    class, this class inherits all attributes and methods from the
+    ``AnalyticalScissionCompositeuFJCUFLFEniCS`` class, the
+    ``SmoothstepScissionCompositeuFJCUFLFEniCS`` class, and the
+    ``SigmoidScissionCompositeuFJCUFLFEniCS`` class, and each of these
+    classes inherit all attributes and methods from the
+    ``CompositeuFJCUFLFEniCS`` class.
     """
-    def __init__(self, **kwargs):
-        omega_0 = kwargs.get("omega_0", None)
-
-        if omega_0 is None:
-            error_message = """\
-                Error: Need to specify the microscopic frequency of segments \
-                in the chains for rate-dependent deformation. \
-                """
-            sys.exit(error_message)
-        
-        # Retain specified parameters
-        self.omega_0 = omega_0
+    def __init__(self):
+        pass
     
-    def p_nu_sci_hat_cmltv_intgrl_func(
+    def p_nu_sci_hat_cmltv_intgrl_ufl_fenics_func(
             self, p_nu_sci_hat_val, t_val, p_nu_sci_hat_val_prior, t_prior,
             p_nu_sci_hat_cmltv_intgrl_val_prior):
         """History-dependent time integral of the rate-independent
@@ -99,32 +105,42 @@ class RateDependentScission(object):
         the rate-independent probability of segment scission as a
         function of its prior value and the current and prior values of
         both the rate-independent probability of segment scission and
-        time.
+        time. This function is implemented in the Unified Form Language
+        (UFL) for FEniCS.
         """
+        # (Single segment) Trapezoidal rule of integration
+        delta_p_nu_sci_hat_cmltv_intgrl_val = (
+            (t_val-t_prior) * 0.5 * (p_nu_sci_hat_val_prior+p_nu_sci_hat_val)
+        )
         return (
-            p_nu_sci_hat_cmltv_intgrl_val_prior + np.trapz(
-                [p_nu_sci_hat_val_prior, p_nu_sci_hat_val], x=[t_prior, t_val])
+            p_nu_sci_hat_cmltv_intgrl_val_prior
+            + delta_p_nu_sci_hat_cmltv_intgrl_val
         )
     
-    def rho_nu_func(self, p_nu_sci_hat_cmltv_intgrl_val):
+    def rho_nu_ufl_fenics_func(self, p_nu_sci_hat_cmltv_intgrl_val):
         """Rate-dependent probability of segment survival.
         
         This function computes the rate-dependent probability of segment
         survival as a function of the history-dependent time integral of
-        the rate-independent probability of segment scission.
+        the rate-independent probability of segment scission. This
+        function is implemented in the Unified Form Language (UFL) for
+        FEniCS.
         """
-        return np.exp(-self.omega_0*p_nu_sci_hat_cmltv_intgrl_val)
+        return exp(-self.omega_0*p_nu_sci_hat_cmltv_intgrl_val)
     
-    def gamma_nu_func(self, p_nu_sci_hat_cmltv_intgrl_val):
+    def gamma_nu_ufl_fenics_func(self, p_nu_sci_hat_cmltv_intgrl_val):
         """Rate-dependent probability of segment scission.
         
         This function computes the rate-dependent probability of segment
         scission as a function of the history-dependent time integral of
-        the rate-independent probability of segment scission.
+        the rate-independent probability of segment scission. This
+        function is implemented in the Unified Form Language (UFL) for
+        FEniCS.
         """
-        return 1. - self.rho_nu_func(p_nu_sci_hat_cmltv_intgrl_val)
+        return 1. - self.rho_nu_ufl_fenics_func(p_nu_sci_hat_cmltv_intgrl_val)
     
-    def rho_nu_dot_func(self, p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val):
+    def rho_nu_dot_ufl_fenics_func(
+            self, p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val):
         """Time rate-of-change of the rate-dependent probability of
         segment survival.
         
@@ -132,14 +148,15 @@ class RateDependentScission(object):
         rate-dependent probability of segment survival as a function of
         the rate-independent probability of segment scission and the
         history-dependent time integral of the rate-independent
-        probability of segment scission.
+        probability of segment scission. This function is implemented in
+        the Unified Form Language (UFL) for FEniCS.
         """
         return (
             -self.omega_0 * p_nu_sci_hat_val
-            * self.rho_nu_func(p_nu_sci_hat_cmltv_intgrl_val)
+            * self.rho_nu_ufl_fenics_func(p_nu_sci_hat_cmltv_intgrl_val)
         )
     
-    def gamma_nu_dot_func(
+    def gamma_nu_dot_ufl_fenics_func(
             self, p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val):
         """Time rate-of-change of the rate-dependent probability of
         segment scission.
@@ -148,14 +165,15 @@ class RateDependentScission(object):
         rate-dependent probability of segment scission as a function of
         the rate-independent probability of segment scission and the
         history-dependent time integral of the rate-independent
-        probability of segment scission.
+        probability of segment scission. This function is implemented in
+        the Unified Form Language (UFL) for FEniCS.
         """
         return (
-            -self.rho_nu_dot_func(
+            -self.rho_nu_dot_ufl_fenics_func(
                 p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val)
         )
     
-    def epsilon_nu_diss_hat_func(
+    def epsilon_nu_diss_hat_ufl_fenics_func(
             self, p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val,
             epsilon_nu_sci_hat_val, t_val, t_prior,
             epsilon_nu_diss_hat_val_prior):
@@ -168,10 +186,11 @@ class RateDependentScission(object):
         current and prior values of time, the current rate-independent
         probability of segment scission, and the history-dependent time
         integral of the rate-independent probability of segment
-        scission.
+        scission. This function is implemented in the Unified Form
+        Language (UFL) for FEniCS.
         """
         gamma_nu_dot_val = (
-            self.gamma_nu_dot_func(
+            self.gamma_nu_dot_ufl_fenics_func(
                 p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val)
         )
         epsilon_nu_diss_hat_dot_val = gamma_nu_dot_val * epsilon_nu_sci_hat_val
@@ -181,25 +200,30 @@ class RateDependentScission(object):
             * (t_val-t_prior)
         )
     
-    def rho_c_func(self, p_nu_sci_hat_cmltv_intgrl_val):
+    def rho_c_ufl_fenics_func(self, p_nu_sci_hat_cmltv_intgrl_val):
         """Rate-dependent probability of chain survival.
         
         This function computes the rate-dependent probability of chain
         survival as a function of the history-dependent time integral of
-        the rate-independent probability of segment scission.
+        the rate-independent probability of segment scission. This
+        function is implemented in the Unified Form Language (UFL) for
+        FEniCS.
         """
-        return np.exp(-self.nu*self.omega_0*p_nu_sci_hat_cmltv_intgrl_val)
+        return exp(-self.nu*self.omega_0*p_nu_sci_hat_cmltv_intgrl_val)
     
-    def gamma_c_func(self, p_nu_sci_hat_cmltv_intgrl_val):
+    def gamma_c_ufl_fenics_func(self, p_nu_sci_hat_cmltv_intgrl_val):
         """Rate-dependent probability of chain scission.
         
         This function computes the rate-dependent probability of chain
         scission as a function of the history-dependent time integral of
-        the rate-independent probability of segment scission.
+        the rate-independent probability of segment scission. This
+        function is implemented in the Unified Form Language (UFL) for
+        FEniCS.
         """
-        return 1. - self.rho_c_func(p_nu_sci_hat_cmltv_intgrl_val)
+        return 1. - self.rho_c_ufl_fenics_func(p_nu_sci_hat_cmltv_intgrl_val)
     
-    def rho_c_dot_func(self, p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val):
+    def rho_c_dot_ufl_fenics_func(
+            self, p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val):
         """Time rate-of-change of the rate-dependent probability of
         chain survival.
         
@@ -207,14 +231,15 @@ class RateDependentScission(object):
         rate-dependent probability of chain survival as a function of
         the rate-independent probability of segment scission and the
         history-dependent time integral of the rate-independent
-        probability of segment scission.
+        probability of segment scission. This function is implemented in
+        the Unified Form Language (UFL) for FEniCS.
         """
         return (
             -self.nu * self.omega_0 * p_nu_sci_hat_val
-            * self.rho_c_func(p_nu_sci_hat_cmltv_intgrl_val)
+            * self.rho_c_ufl_fenics_func(p_nu_sci_hat_cmltv_intgrl_val)
         )
     
-    def gamma_c_dot_func(
+    def gamma_c_dot_ufl_fenics_func(
             self, p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val):
         """Time rate-of-change of the rate-dependent probability of
         chain scission.
@@ -223,14 +248,15 @@ class RateDependentScission(object):
         rate-dependent probability of chain scission as a function of
         the rate-independent probability of segment scission and the
         history-dependent time integral of the rate-independent
-        probability of segment scission.
+        probability of segment scission. This function is implemented in
+        the Unified Form Language (UFL) for FEniCS.
         """
         return (
-            -self.rho_c_dot_func(
+            -self.rho_c_dot_ufl_fenics_func(
                 p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val)
         )
     
-    def epsilon_cnu_diss_hat_func(
+    def epsilon_cnu_diss_hat_ufl_fenics_func(
             self, p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val,
             epsilon_cnu_sci_hat_val, t_val, t_prior,
             epsilon_cnu_diss_hat_val_prior):
@@ -243,10 +269,11 @@ class RateDependentScission(object):
         energy per segment, the current and prior values of time, the
         current rate-independent probability of segment scission, and
         the history-dependent time integral of the rate-independent
-        probability of segment scission.
+        probability of segment scission. This function is implemented in
+        the Unified Form Language (UFL) for FEniCS.
         """
         gamma_c_dot_val = (
-            self.gamma_c_dot_func(
+            self.gamma_c_dot_ufl_fenics_func(
                 p_nu_sci_hat_val, p_nu_sci_hat_cmltv_intgrl_val)
         )
         epsilon_cnu_diss_hat_dot_val = gamma_c_dot_val * epsilon_cnu_sci_hat_val

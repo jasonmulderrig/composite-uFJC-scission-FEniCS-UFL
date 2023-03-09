@@ -1,4 +1,6 @@
-"""The characterizer module for the composite uFJC scission model."""
+"""The characterizer module for the composite uFJC scission model 
+implemented in the Unified Form Language (UFL) for FEniCS.
+"""
 
 # import necessary libraries
 from __future__ import division
@@ -6,13 +8,16 @@ from .default_parameters import default_parameters
 from .utility import generate_savedir
 
 
-class CompositeuFJCScissionCharacterizer(object):
-    """Characterizer class for composite uFJCs with scission."""
+class CompositeuFJCScissionUFLFEniCSCharacterizer(object):
+    """Characterizer class for composite uFJCs with scission implemented
+    in the Unified Form Language (UFL) for FEniCS.
+    """
 
     def __init__(self):
-        """Initializes the ``CompositeuFJCScissionCharacterizer`` class,
-        producing a composite uFJC scission model characterization
-        instance.
+        """Initializes the
+        ``CompositeuFJCScissionUFLFEniCSCharacterizer`` class, producing
+        a characterization instance for the composite uFJC scission
+        model implemented in the Unified Form Language (UFL) for FEniCS.
         """
 
         # Set default parameters and user-defined parameters
