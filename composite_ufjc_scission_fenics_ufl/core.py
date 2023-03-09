@@ -99,7 +99,7 @@ class CompositeuFJCUFLFEniCS(object):
         u_nu_prime_supercrit_val = (
             u_nu_prime_supercrit_nmrtr / u_nu_prime_supercrit_dnmrtr
         )
-        u_nu_prime_val = conditional(le(lmbda_nu, self.lmbda_nu_crit),
+        u_nu_prime_val = conditional(le(lmbda_nu_hat, self.lmbda_nu_crit),
                                      u_nu_prime_subcrit_val,
                                      u_nu_prime_supercrit_val)
         return u_nu_prime_val
@@ -135,8 +135,6 @@ class CompositeuFJCUFLFEniCS(object):
             3. * alpha_tilde_psb * gamma_tilde_psb - beta_tilde_psb**2
         )
         pi_tilde_psb_dnmntr = 3. * alpha_tilde_psb**2
-        pi_tilde_psb_dnmntr = conditional(ge(pi_tilde_psb_dnmntr, DOLFIN_EPS),
-                                          pi_tilde_psb_dnmntr, DOLFIN_EPS)
         pi_tilde_psb = pi_tilde_psb_nmrtr / pi_tilde_psb_dnmntr
 
         rho_tilde_psb_nmrtr = (
@@ -145,20 +143,10 @@ class CompositeuFJCUFLFEniCS(object):
             + 27. * alpha_tilde_psb**2 * delta_tilde_psb
         )
         rho_tilde_psb_dnmntr = 27. * alpha_tilde_psb**3
-        rho_tilde_psb_dnmntr = conditional(ge(rho_tilde_psb_dnmntr, DOLFIN_EPS),
-                                           rho_tilde_psb_dnmntr, DOLFIN_EPS)
         rho_tilde_psb = rho_tilde_psb_nmrtr / rho_tilde_psb_dnmntr
         
-        acos_arg_psb_dnmntr_trm = 2. * pi_tilde_psb
-        acos_arg_psb_dnmntr_trm = conditional(ge(acos_arg_psb_dnmntr_trm, DOLFIN_EPS),
-                                              acos_arg_psb_dnmntr_trm, DOLFIN_EPS)
-        
-        acos_arg_psb_sqrt_arg = -3. / pi_tilde_psb
-        acos_arg_psb_sqrt_arg = conditional(ge(acos_arg_psb_sqrt_arg, DOLFIN_EPS),
-                                   acos_arg_psb_sqrt_arg, DOLFIN_EPS)
-
         acos_arg_psb = (
-            3. * rho_tilde_psb / acos_arg_psb_dnmntr_trm * sqrt(acos_arg_psb_sqrt_arg)
+            3. * rho_tilde_psb / (2.*pi_tilde_psb) * sqrt(-3./pi_tilde_psb)
         )
         acos_arg_psb = conditional(ge(acos_arg_psb, 1.-DOLFIN_EPS),
                                    1.-DOLFIN_EPS, acos_arg_psb)
@@ -167,17 +155,9 @@ class CompositeuFJCUFLFEniCS(object):
         
         cos_arg_psb = 1. / 3. * acos(acos_arg_psb) - 2. * DOLFIN_PI / 3.
 
-        sqrt_arg_psb = -pi_tilde_psb / 3.
-        sqrt_arg_psb = conditional(ge(sqrt_arg_psb, DOLFIN_EPS),
-                                   sqrt_arg_psb, DOLFIN_EPS)
-        
-        psb_dnmntr_trm = 3. * alpha_tilde_psb
-        psb_dnmntr_trm = conditional(ge(psb_dnmntr_trm, DOLFIN_EPS),
-                                     psb_dnmntr_trm, DOLFIN_EPS)
-
         lmbda_c_eq_psb_val = (
-            2. * sqrt(sqrt_arg_psb) * cos(cos_arg_psb)
-            - beta_tilde_psb / psb_dnmntr_trm
+            2. * sqrt(-pi_tilde_psb/3.) * cos(cos_arg_psb)
+            - beta_tilde_psb / (3.*alpha_tilde_psb)
         )
 
         # sub-critical Bergstrom approximant
@@ -238,8 +218,6 @@ class CompositeuFJCUFLFEniCS(object):
             3. * alpha_tilde_psb * gamma_tilde_psb - beta_tilde_psb**2
         )
         pi_tilde_psb_dnmntr = 3. * alpha_tilde_psb**2
-        pi_tilde_psb_dnmntr = conditional(ge(pi_tilde_psb_dnmntr, DOLFIN_EPS),
-                                          pi_tilde_psb_dnmntr, DOLFIN_EPS)
         pi_tilde_psb = pi_tilde_psb_nmrtr / pi_tilde_psb_dnmntr
 
         rho_tilde_psb_nmrtr = (
@@ -248,20 +226,10 @@ class CompositeuFJCUFLFEniCS(object):
             + 27. * alpha_tilde_psb**2 * delta_tilde_psb
         )
         rho_tilde_psb_dnmntr = 27. * alpha_tilde_psb**3
-        rho_tilde_psb_dnmntr = conditional(ge(rho_tilde_psb_dnmntr, DOLFIN_EPS),
-                                           rho_tilde_psb_dnmntr, DOLFIN_EPS)
         rho_tilde_psb = rho_tilde_psb_nmrtr / rho_tilde_psb_dnmntr
 
-        acos_arg_psb_dnmntr_trm = 2. * pi_tilde_psb
-        acos_arg_psb_dnmntr_trm = conditional(ge(acos_arg_psb_dnmntr_trm, DOLFIN_EPS),
-                                              acos_arg_psb_dnmntr_trm, DOLFIN_EPS)
-        
-        acos_arg_psb_sqrt_arg = -3. / pi_tilde_psb
-        acos_arg_psb_sqrt_arg = conditional(ge(acos_arg_psb_sqrt_arg, DOLFIN_EPS),
-                                   acos_arg_psb_sqrt_arg, DOLFIN_EPS)
-
         acos_arg_psb = (
-            3. * rho_tilde_psb / acos_arg_psb_dnmntr_trm * sqrt(acos_arg_psb_sqrt_arg)
+            3. * rho_tilde_psb / (2. * pi_tilde_psb) * sqrt(-3./pi_tilde_psb)
         )
         acos_arg_psb = conditional(ge(acos_arg_psb, 1.-DOLFIN_EPS),
                                    1.-DOLFIN_EPS, acos_arg_psb)
@@ -270,24 +238,13 @@ class CompositeuFJCUFLFEniCS(object):
         
         cos_arg_psb = 1. / 3. * acos(acos_arg_psb) - 2. * DOLFIN_PI / 3.
 
-        sqrt_arg_psb = -pi_tilde_psb / 3.
-        sqrt_arg_psb = conditional(ge(sqrt_arg_psb, DOLFIN_EPS),
-                                   sqrt_arg_psb, DOLFIN_EPS)
-        
-        psb_dnmntr_trm = 3. * alpha_tilde_psb
-        psb_dnmntr_trm = conditional(ge(psb_dnmntr_trm, DOLFIN_EPS),
-                                     psb_dnmntr_trm, DOLFIN_EPS)
-
         lmbda_nu_psb_val = (
-            2. * sqrt(sqrt_arg_psb) * cos(cos_arg_psb)
-            - beta_tilde_psb / psb_dnmntr_trm
+            2. * sqrt(-pi_tilde_psb/3.) * cos(cos_arg_psb)
+            - beta_tilde_psb / (3. * alpha_tilde_psb)
         )
 
         # sub-critical Bergstrom approximant
         sqrt_arg_bsb = lmbda_c_eq**2 - 2. * lmbda_c_eq + 1. + 4. / self.kappa_nu
-        sqrt_arg_bsb = conditional(ge(sqrt_arg_bsb, DOLFIN_EPS),
-                                   sqrt_arg_bsb, DOLFIN_EPS)
-        
         lmbda_nu_bsb_val = (lmbda_c_eq+1.+sqrt(sqrt_arg_bsb)) / 2.
 
         # super-critical Bergstrom approximant
@@ -300,8 +257,6 @@ class CompositeuFJCUFLFEniCS(object):
             3. * alpha_tilde_bsp * gamma_tilde_bsp - beta_tilde_bsp**2
         )
         pi_tilde_bsp_dnmntr = 3. * alpha_tilde_bsp**2
-        pi_tilde_bsp_dnmntr = conditional(ge(pi_tilde_bsp_dnmntr, DOLFIN_EPS),
-                                          pi_tilde_bsp_dnmntr, DOLFIN_EPS)
         pi_tilde_bsp  = pi_tilde_bsp_nmrtr / pi_tilde_bsp_dnmntr
 
         rho_tilde_bsp_nmrtr = (
@@ -310,20 +265,10 @@ class CompositeuFJCUFLFEniCS(object):
             + 27. * alpha_tilde_bsp**2 * delta_tilde_bsp
         )
         rho_tilde_bsp_dnmntr = 27. * alpha_tilde_bsp**3
-        rho_tilde_bsp_dnmntr = conditional(ge(rho_tilde_bsp_dnmntr, DOLFIN_EPS),
-                                           rho_tilde_bsp_dnmntr, DOLFIN_EPS)
         rho_tilde_bsp = rho_tilde_bsp_nmrtr / rho_tilde_bsp_dnmntr
 
-        acos_arg_bsp_dnmntr_trm = 2. * pi_tilde_bsp
-        acos_arg_bsp_dnmntr_trm = conditional(ge(acos_arg_bsp_dnmntr_trm, DOLFIN_EPS),
-                                              acos_arg_bsp_dnmntr_trm, DOLFIN_EPS)
-        
-        acos_arg_bsp_sqrt_arg = -3. / pi_tilde_bsp
-        acos_arg_bsp_sqrt_arg = conditional(ge(acos_arg_bsp_sqrt_arg, DOLFIN_EPS),
-                                   acos_arg_bsp_sqrt_arg, DOLFIN_EPS)
-
         acos_arg_bsp = (
-            3. * rho_tilde_bsp / acos_arg_bsp_dnmntr_trm * sqrt(acos_arg_bsp_sqrt_arg)
+            3. * rho_tilde_bsp / (2.*pi_tilde_bsp) * sqrt(-3./pi_tilde_bsp)
         )
         acos_arg_bsp = conditional(ge(acos_arg_bsp, 1.-DOLFIN_EPS),
                                    1.-DOLFIN_EPS, acos_arg_bsp)
@@ -332,17 +277,9 @@ class CompositeuFJCUFLFEniCS(object):
         
         cos_arg_bsp = 1. / 3. * acos(acos_arg_bsp) - 2. * DOLFIN_PI / 3.
 
-        sqrt_arg_bsp = -pi_tilde_bsp / 3.
-        sqrt_arg_bsp = conditional(ge(sqrt_arg_bsp, DOLFIN_EPS),
-                                   sqrt_arg_bsp, DOLFIN_EPS)
-        
-        bsp_dnmntr_trm = 3. * alpha_tilde_bsp
-        bsp_dnmntr_trm = conditional(ge(bsp_dnmntr_trm, DOLFIN_EPS),
-                                     bsp_dnmntr_trm, DOLFIN_EPS)
-
         lmbda_nu_bsp_val = (
-            2. * sqrt(sqrt_arg_bsp) * cos(cos_arg_bsp)
-            - beta_tilde_bsp / bsp_dnmntr_trm
+            2. * sqrt(-pi_tilde_bsp/3.) * cos(cos_arg_bsp)
+            - beta_tilde_bsp / (3.*alpha_tilde_bsp)
         )
 
         # evaluate the precise value of the segment stretch
@@ -358,26 +295,26 @@ class CompositeuFJCUFLFEniCS(object):
         """Langevin function.
 
         This function computes the Langevin function of a scalar
-        argument.
+        argument. This function is implemented in the Unified Form
+        Language (UFL) for FEniCS.
         """
-        if x <= self.cond_val:
-            return 0.
-        else:
-            return 1. / np.tanh(x) - 1. / x
+        return conditional(le(x, self.cond_val), 0., 1. / tanh(x) - 1. / x)
 
     def inv_L_func(self, lmbda_comp_nu):
         """Jedynak R[9,2] inverse Langevin approximant.
         
         This function computes the Jedynak R[9,2] inverse Langevin
         approximant as a function of the result of the equilibrium
-        chain stretch minus the segment stretch plus one.
+        chain stretch minus the segment stretch plus one. This function
+        is implemented in the Unified Form Language (UFL) for FEniCS.
         """
-        return (
-            lmbda_comp_nu * (3.-1.00651*lmbda_comp_nu**2
-            -0.962251*lmbda_comp_nu**4+1.47353*lmbda_comp_nu**6
-            -0.48953*lmbda_comp_nu**8) 
-            / ((1.-lmbda_comp_nu)*(1.+1.01524*lmbda_comp_nu))
-        )
+        nmrtr = lmbda_comp_nu * (3.-1.00651*lmbda_comp_nu**2
+                                 -0.962251*lmbda_comp_nu**4
+                                 +1.47353*lmbda_comp_nu**6
+                                 -0.48953*lmbda_comp_nu**8)
+        dnmrtr = (1.-lmbda_comp_nu) * (1.+1.01524*lmbda_comp_nu)
+        dnmntr = conditional(ge(dnmntr, DOLFIN_EPS), dnmntr, DOLFIN_EPS)
+        return nmrtr / dnmntr
     
     def s_cnu_func(self, lmbda_comp_nu):
         """Nondimensional chain-level entropic free energy contribution
