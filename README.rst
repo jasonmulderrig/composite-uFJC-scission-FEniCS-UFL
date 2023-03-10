@@ -48,11 +48,11 @@ Citation
 .. |build| image:: https://img.shields.io/github/checks-status/jasonmulderrig/composite-uFJC-scission-FEniCS-UFL/main?label=GitHub&logo=github
     :target: https://github.com/jasonmulderrig/composite-uFJC-scission-FEniCS-UFL
 
-.. |pyversions| image:: https://img.shields.io/pypi/pyversions/composite-uFJC-scission-FEniCS-UFL.svg?logo=python&logoColor=FBE072&color=4B8BBE&label=Python
-    :target: https://pypi.org/project/composite-uFJC-scission-FEniCS-UFL/
+.. |pyversions| image:: https://img.shields.io/pypi/pyversions/composite-ufjc-scission-fenics-ufl.svg?logo=python&logoColor=FBE072&color=4B8BBE&label=Python
+    :target: https://pypi.org/project/composite-ufjc-scission-fenics-ufl/
 
-.. |pypi| image:: https://img.shields.io/pypi/v/composite-uFJC-scission-FEniCS-UFL?logo=pypi&logoColor=FBE072&label=PyPI&color=4B8BBE
-    :target: https://pypi.org/project/composite-uFJC-scission-FEniCS-UFL/
+.. |pypi| image:: https://img.shields.io/pypi/v/composite-ufjc-scission-fenics-ufl?logo=pypi&logoColor=FBE072&label=PyPI&color=4B8BBE
+    :target: https://pypi.org/project/composite-ufjc-scission-fenics-ufl/
 
 .. |license| image:: https://img.shields.io/github/license/jasonmulderrig/composite-uFJC-scission-FEniCS-UFL?label=License
     :target: https://github.com/jasonmulderrig/composite-uFJC-scission-FEniCS-UFL/LICENSE
