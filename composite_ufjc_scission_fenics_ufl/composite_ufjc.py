@@ -117,9 +117,6 @@ class RateIndependentScissionCompositeuFJCUFLFEniCS(
         self.composite_ufjc = composite_ufjc
 
         # Core composite uFJC single-chain model constants
-        self.min_exponent = Constant(self.composite_ufjc.min_exponent)
-        self.max_exponent = Constant(self.composite_ufjc.max_exponent)
-        self.eps_val = Constant(self.composite_ufjc.eps_val)
         self.cond_val = Constant(self.composite_ufjc.cond_val)
         
         self.nu = Constant(self.composite_ufjc.nu)
@@ -150,24 +147,6 @@ class RateIndependentScissionCompositeuFJCUFLFEniCS(
         self.Lambda_nu_ref = Constant(self.composite_ufjc.Lambda_nu_ref)
 
         self.g_c_crit = Constant(self.composite_ufjc.g_c_crit)
-        self.lmbda_nu_crit_p_nu_sci_hat_0 = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_nu_sci_hat_0)
-        )
-        self.lmbda_nu_crit_p_nu_sci_hat_half = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_nu_sci_hat_half)
-        )
-        self.lmbda_nu_crit_p_nu_sci_hat_1 = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_nu_sci_hat_1)
-        )
-        self.lmbda_nu_crit_p_c_sci_hat_0 = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_c_sci_hat_0)
-        )
-        self.lmbda_nu_crit_p_c_sci_hat_half = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_c_sci_hat_half)
-        )
-        self.lmbda_nu_crit_p_c_sci_hat_1 = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_c_sci_hat_1)
-        )
 
         del pythonic_composite_ufjc
         del composite_ufjc
@@ -268,9 +247,6 @@ class RateDependentScissionCompositeuFJCUFLFEniCS(
         self.composite_ufjc = composite_ufjc
 
         # Core composite uFJC single-chain model constants
-        self.min_exponent = Constant(self.composite_ufjc.min_exponent)
-        self.max_exponent = Constant(self.composite_ufjc.max_exponent)
-        self.eps_val = Constant(self.composite_ufjc.eps_val)
         self.cond_val = Constant(self.composite_ufjc.cond_val)
         
         self.nu = Constant(self.composite_ufjc.nu)
@@ -301,24 +277,6 @@ class RateDependentScissionCompositeuFJCUFLFEniCS(
         self.Lambda_nu_ref = Constant(self.composite_ufjc.Lambda_nu_ref)
 
         self.g_c_crit = Constant(self.composite_ufjc.g_c_crit)
-        self.lmbda_nu_crit_p_nu_sci_hat_0 = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_nu_sci_hat_0)
-        )
-        self.lmbda_nu_crit_p_nu_sci_hat_half = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_nu_sci_hat_half)
-        )
-        self.lmbda_nu_crit_p_nu_sci_hat_1 = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_nu_sci_hat_1)
-        )
-        self.lmbda_nu_crit_p_c_sci_hat_0 = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_c_sci_hat_0)
-        )
-        self.lmbda_nu_crit_p_c_sci_hat_half = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_c_sci_hat_half)
-        )
-        self.lmbda_nu_crit_p_c_sci_hat_1 = (
-            Constant(self.composite_ufjc.lmbda_nu_crit_p_c_sci_hat_1)
-        )
 
         # Rate dependent scission constant
         self.omega_0 = Constant(self.composite_ufjc.omega_0)
@@ -412,9 +370,6 @@ class RateIndependentSmoothstepScissionCompositeuFJCUFLFEniCS(
         self.composite_ufjc = composite_ufjc
 
         # Core composite uFJC single-chain model constants
-        self.min_exponent = Constant(self.composite_ufjc.min_exponent)
-        self.max_exponent = Constant(self.composite_ufjc.max_exponent)
-        self.eps_val = Constant(self.composite_ufjc.eps_val)
         self.cond_val = Constant(self.composite_ufjc.cond_val)
         
         self.nu = Constant(self.composite_ufjc.nu)
@@ -540,9 +495,6 @@ class RateDependentSmoothstepScissionCompositeuFJCUFLFEniCS(
         self.composite_ufjc = composite_ufjc
 
         # Core composite uFJC single-chain model constants
-        self.min_exponent = Constant(self.composite_ufjc.min_exponent)
-        self.max_exponent = Constant(self.composite_ufjc.max_exponent)
-        self.eps_val = Constant(self.composite_ufjc.eps_val)
         self.cond_val = Constant(self.composite_ufjc.cond_val)
         
         self.nu = Constant(self.composite_ufjc.nu)
@@ -663,9 +615,6 @@ class RateIndependentSigmoidScissionCompositeuFJCUFLFEniCS(
         self.composite_ufjc = composite_ufjc
 
         # Core composite uFJC single-chain model constants
-        self.min_exponent = Constant(self.composite_ufjc.min_exponent)
-        self.max_exponent = Constant(self.composite_ufjc.max_exponent)
-        self.eps_val = Constant(self.composite_ufjc.eps_val)
         self.cond_val = Constant(self.composite_ufjc.cond_val)
         
         self.nu = Constant(self.composite_ufjc.nu)
@@ -785,9 +734,6 @@ class RateDependentSigmoidScissionCompositeuFJCUFLFEniCS(
         self.composite_ufjc = composite_ufjc
 
         # Core composite uFJC single-chain model constants
-        self.min_exponent = Constant(self.composite_ufjc.min_exponent)
-        self.max_exponent = Constant(self.composite_ufjc.max_exponent)
-        self.eps_val = Constant(self.composite_ufjc.eps_val)
         self.cond_val = Constant(self.composite_ufjc.cond_val)
         
         self.nu = Constant(self.composite_ufjc.nu)

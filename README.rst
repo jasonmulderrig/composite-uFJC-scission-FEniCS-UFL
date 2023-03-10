@@ -2,7 +2,7 @@
 composite uFJC scission FEniCS UFL
 ##################################
 
-|build| |license|
+|build| |pyversions| |pypi| |license| |zenodo|
 
 The Python package for the composite uFJC model with scission implemented in the Unified Form Language (UFL) for FEniCS.
 
@@ -10,14 +10,13 @@ The Python package for the composite uFJC model with scission implemented in the
 Installation
 ************
 
-.. This package can be installed using ``pip`` via the `Python Package Index <https://pypi.org/project/composite-ufjc-scission-fenics-ufl/>`_ (PyPI),
+This package can be installed using ``pip`` via the `Python Package Index <https://pypi.org/project/composite-ufjc-scission-fenics-ufl/>`_ (PyPI),
 
+::
 
+    pip install composite-ufjc-scission-fenics-ufl
 
-..    pip install composite-ufjc-scission-fenics-ufl
-
-.. Alternatively, a branch can be directly installed using
-A branch can be directly installed using
+Alternatively, a branch can be directly installed using
 
 ::
 
@@ -47,5 +46,14 @@ Citation
 .. |build| image:: https://img.shields.io/github/checks-status/jasonmulderrig/composite-uFJC-scission-FEniCS-UFL/main?label=GitHub&logo=github
     :target: https://github.com/jasonmulderrig/composite-uFJC-scission-FEniCS-UFL
 
+.. |pyversions| image:: https://img.shields.io/pypi/pyversions/composite-uFJC-scission-FEniCS-UFL.svg?logo=python&logoColor=FBE072&color=4B8BBE&label=Python
+    :target: https://pypi.org/project/composite-uFJC-scission-FEniCS-UFL/
+
+.. |pypi| image:: https://img.shields.io/pypi/v/composite-uFJC-scission-FEniCS-UFL?logo=pypi&logoColor=FBE072&label=PyPI&color=4B8BBE
+    :target: https://pypi.org/project/composite-uFJC-scission-FEniCS-UFL/
+
 .. |license| image:: https://img.shields.io/github/license/jasonmulderrig/composite-uFJC-scission-FEniCS-UFL?label=License
     :target: https://github.com/jasonmulderrig/composite-uFJC-scission-FEniCS-UFL/LICENSE
+
+.. |zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.7335564.svg
+   :target: https://doi.org/10.5281/zenodo.7335564

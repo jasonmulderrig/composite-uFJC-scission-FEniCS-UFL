@@ -91,13 +91,13 @@ class CompositeuFJCUFLFEniCS(object):
         """
         u_nu_prime_subcrit_val = self.kappa_nu * (lmbda_nu_hat-1.)
         u_nu_prime_supercrit_nmrtr = self.zeta_nu_char**2
-        u_nu_prime_supercrit_dnmrtr = self.kappa_nu * (lmbda_nu_hat-1.)**3
-        u_nu_prime_supercrit_dnmrtr = (
-            conditional(ge(u_nu_prime_supercrit_dnmrtr, DOLFIN_EPS),
-                        u_nu_prime_supercrit_dnmrtr, DOLFIN_EPS)
+        u_nu_prime_supercrit_dnmntr = self.kappa_nu * (lmbda_nu_hat-1.)**3
+        u_nu_prime_supercrit_dnmntr = (
+            conditional(ge(u_nu_prime_supercrit_dnmntr, DOLFIN_EPS),
+                        u_nu_prime_supercrit_dnmntr, DOLFIN_EPS)
         )
         u_nu_prime_supercrit_val = (
-            u_nu_prime_supercrit_nmrtr / u_nu_prime_supercrit_dnmrtr
+            u_nu_prime_supercrit_nmrtr / u_nu_prime_supercrit_dnmntr
         )
         u_nu_prime_val = conditional(le(lmbda_nu_hat, self.lmbda_nu_crit),
                                      u_nu_prime_subcrit_val,
@@ -291,16 +291,18 @@ class CompositeuFJCUFLFEniCS(object):
 
         return lmbda_nu_val
 
-    def L_func(self, x):
+    def L_ufl_fenics_func(self, x):
         """Langevin function.
 
         This function computes the Langevin function of a scalar
         argument. This function is implemented in the Unified Form
         Language (UFL) for FEniCS.
         """
-        return conditional(le(x, self.cond_val), 0., 1. / tanh(x) - 1. / x)
+        y = conditional(ge(x, self.cond_val), x, self.cond_val)
+        L_val = 1. / tanh(y) - 1. / y
+        return conditional(ge(x, self.cond_val), L_val, 0.)
 
-    def inv_L_func(self, lmbda_comp_nu):
+    def inv_L_ufl_fenics_func(self, lmbda_comp_nu):
         """Jedynak R[9,2] inverse Langevin approximant.
         
         This function computes the Jedynak R[9,2] inverse Langevin
@@ -308,15 +310,17 @@ class CompositeuFJCUFLFEniCS(object):
         chain stretch minus the segment stretch plus one. This function
         is implemented in the Unified Form Language (UFL) for FEniCS.
         """
-        nmrtr = lmbda_comp_nu * (3.-1.00651*lmbda_comp_nu**2
-                                 -0.962251*lmbda_comp_nu**4
-                                 +1.47353*lmbda_comp_nu**6
-                                 -0.48953*lmbda_comp_nu**8)
-        dnmrtr = (1.-lmbda_comp_nu) * (1.+1.01524*lmbda_comp_nu)
+        trm_i   = 3.
+        trm_ii  = -1.00651 * lmbda_comp_nu**2
+        trm_iii = -0.962251 * lmbda_comp_nu**4
+        trm_iv  = 1.47353 * lmbda_comp_nu**6
+        trm_v   = -0.48953 * lmbda_comp_nu**8
+        nmrtr  = lmbda_comp_nu * (trm_i+trm_ii+trm_iii+trm_iv+trm_v)
+        dnmntr = (1.-lmbda_comp_nu) * (1.+1.01524*lmbda_comp_nu)
         dnmntr = conditional(ge(dnmntr, DOLFIN_EPS), dnmntr, DOLFIN_EPS)
         return nmrtr / dnmntr
     
-    def s_cnu_func(self, lmbda_comp_nu):
+    def s_cnu_ufl_fenics_func(self, lmbda_comp_nu):
         """Nondimensional chain-level entropic free energy contribution
         per segment as calculated by the Jedynak R[9,2] inverse Langevin
         approximate.
@@ -325,73 +329,88 @@ class CompositeuFJCUFLFEniCS(object):
         free energy contribution per segment as calculated by the
         Jedynak R[9,2] inverse Langevin approximate as a function of the
         result of the equilibrium chain stretch minus the segment
-        stretch plus one.
+        stretch plus one. This function is implemented in the Unified
+        Form Language (UFL) for FEniCS.
         """
+        ln_arg_i  = 1.00000000002049 - lmbda_comp_nu
+        ln_arg_ii = lmbda_comp_nu + 0.98498877114821
+
+        trm_i    = 0.0602726941412868 * lmbda_comp_nu**8
+        trm_ii   = 0.00103401966455583 * lmbda_comp_nu**7
+        trm_iii  = -0.162726405850159 * lmbda_comp_nu**6
+        trm_iv   = -0.00150537112388157 * lmbda_comp_nu**5
+        trm_v    = -0.00350216312906114 * lmbda_comp_nu**4
+        trm_vi   = -0.00254138511870934 * lmbda_comp_nu**3
+        trm_vii  = 0.488744117329956 * lmbda_comp_nu**2
+        trm_viii = 0.0071635921950366 * lmbda_comp_nu
+        trm_ix   = -0.999999503781195 * ln(ln_arg_i)
+        trm_x    = -0.992044340231098 * ln(ln_arg_ii)
+        trm_xi   = -0.0150047080499398
         return (
-            0.0602726941412868 * lmbda_comp_nu**8
-            + 0.00103401966455583 * lmbda_comp_nu**7
-            - 0.162726405850159 * lmbda_comp_nu**6
-            - 0.00150537112388157 * lmbda_comp_nu**5
-            - 0.00350216312906114 * lmbda_comp_nu**4
-            - 0.00254138511870934 * lmbda_comp_nu**3
-            + 0.488744117329956 * lmbda_comp_nu**2
-            + 0.0071635921950366 * lmbda_comp_nu
-            - 0.999999503781195 * np.log(1.00000000002049-lmbda_comp_nu)
-            - 0.992044340231098 * np.log(lmbda_comp_nu+0.98498877114821)
-            - 0.0150047080499398
+            trm_i + trm_ii + trm_iii + trm_iv + trm_v + trm_vi + trm_vii
+            + trm_viii + trm_ix + trm_x + trm_xi
         )
     
-    def s_cnu_analytical_func(self, lmbda_nu_hat):
+    def s_cnu_analytical_ufl_fenics_func(self, lmbda_nu_hat):
         """Analytical form of the nondimensional chain-level entropic
         free energy contribution per segment.
         
         This function computes the nondimensional chain-level entropic
         free energy contribution per segment as a function of the
-        applied segment stretch.
+        applied segment stretch. This function is implemented in the
+        Unified Form Language (UFL) for FEniCS.
         """
-        if lmbda_nu_hat <= 1. + self.cond_val:
-            return 0.
-        else:
-            xi_c_hat = self.xi_c_analytical_func(lmbda_nu_hat)
-            return (
-                self.L_func(xi_c_hat) * xi_c_hat
-                + np.log(xi_c_hat/np.sinh(xi_c_hat))
-            )
+        lmbda_nu_hat_cond = (
+            conditional(ge(lmbda_nu_hat, 1.+self.cond_val),
+                        lmbda_nu_hat, 1.+self.cond_val)
+        )
+        xi_c_hat = self.xi_c_analytical_ufl_fenics_func(lmbda_nu_hat_cond)
+        s_cnu_val = (
+            self.L_ufl_fenics_func(xi_c_hat) * xi_c_hat
+            + ln(xi_c_hat/sinh(xi_c_hat))
+        )
+        return conditional(ge(lmbda_nu_hat, 1.+self.cond_val), s_cnu_val, 0.)
     
-    def psi_cnu_func(self, lmbda_nu, lmbda_c_eq):
+    def psi_cnu_ufl_fenics_func(self, lmbda_nu, lmbda_c_eq):
         """Nondimensional chain-level Helmholtz free energy per segment.
         
         This function computes the nondimensional chain-level Helmholtz
         free energy per segment as a function of the segment stretch and
-        the equilibrium chain stretch.
+        the equilibrium chain stretch. This function is implemented in
+        the Unified Form Language (UFL) for FEniCS.
         """
         lmbda_comp_nu = lmbda_c_eq - lmbda_nu + 1.
         
-        return self.u_nu_func(lmbda_nu) + self.s_cnu_func(lmbda_comp_nu)
+        return (
+            self.u_nu_ufl_fenics_func(lmbda_nu)
+            + self.s_cnu_ufl_fenics_func(lmbda_comp_nu)
+        )
     
-    def psi_cnu_analytical_func(self, lmbda_nu_hat):
+    def psi_cnu_analytical_ufl_fenics_func(self, lmbda_nu_hat):
         """Analytical form of the nondimensional chain-level Helmholtz
         free energy per segment.
         
         This function computes the nondimensional chain-level Helmholtz
         free energy per segment as a function of the applied segment
-        stretch.
+        stretch. This function is implemented in the Unified Form
+        Language (UFL) for FEniCS.
         """
         return (
-            self.u_nu_analytical_func(lmbda_nu_hat)
-            + self.s_cnu_analytical_func(lmbda_nu_hat)
+            self.u_nu_analytical_ufl_fenics_func(lmbda_nu_hat)
+            + self.s_cnu_analytical_ufl_fenics_func(lmbda_nu_hat)
         )
     
-    def xi_c_func(self, lmbda_nu, lmbda_c_eq):
+    def xi_c_ufl_fenics_func(self, lmbda_nu, lmbda_c_eq):
         """Nondimensional chain force.
         
         This function computes the nondimensional chain force as a
         function of the segment stretch and the equilibrium chain
-        stretch.
+        stretch. This function is implemented in the Unified Form
+        Language (UFL) for FEniCS.
         """
         lmbda_comp_nu = lmbda_c_eq - lmbda_nu + 1.
         
-        return self.inv_L_func(lmbda_comp_nu)
+        return self.inv_L_ufl_fenics_func(lmbda_comp_nu)
     
     def xi_c_analytical_ufl_fenics_func(self, lmbda_nu_hat):
         """Analytical form of the nondimensional chain force.
