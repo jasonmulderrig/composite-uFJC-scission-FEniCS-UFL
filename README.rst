@@ -36,6 +36,8 @@ Information
 Citation
 ********
 
+\Jason Mulderrig, Brandon Talamini, and Nikolaos Bouklas, ``composite-ufjc-scission-fenics-ufl``: the Python package for the composite uFJC model with scission implemented in the Unified Form Language (UFL) in FEniCS, `Zenodo (2023) <https://doi.org/10.5281/zenodo.7719238>`_.
+
 \Jason Mulderrig, Brandon Talamini, and Nikolaos Bouklas, ``composite-ufjc-scission``: the Python package for the composite uFJC model with scission, `Zenodo (2022) <https://doi.org/10.5281/zenodo.7335564>`_.
 
 \Jason Mulderrig, Brandon Talamini, and Nikolaos Bouklas, A statistical mechanics framework for polymer chain scission, based on the concepts of distorted bond potential and asymptotic matching, `Journal of the Mechanics and Physics of Solids 174, 105244 (2023) <https://www.sciencedirect.com/science/article/pii/S0022509623000480>`_.
@@ -55,5 +57,5 @@ Citation
 .. |license| image:: https://img.shields.io/github/license/jasonmulderrig/composite-uFJC-scission-FEniCS-UFL?label=License
     :target: https://github.com/jasonmulderrig/composite-uFJC-scission-FEniCS-UFL/LICENSE
 
-.. |zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.7335564.svg
-   :target: https://doi.org/10.5281/zenodo.7335564
+.. |zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.7719238.svg
+   :target: https://doi.org/10.5281/zenodo.7719238
